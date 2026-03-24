@@ -70,6 +70,7 @@ interface Task {
 }
 
 // Helper function to generate proactive suggestions based on context
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getProactiveSuggestions(currentTasks: Task[]): string[] {
   const now = new Date();
   const hour = now.getHours();
