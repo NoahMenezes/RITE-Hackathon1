@@ -77,7 +77,7 @@ export default function DashboardPage() {
               className="mt-8 w-full p-6 bg-blue-600 hover:bg-blue-700 text-white font-black text-lg rounded-xl transition-all shadow-lg shadow-blue-500/20"
               onClick={() => router.push("/dashboard/chat")}
             >
-              Launch TaskPilot Chat
+              Launch FocusFlow Chat
             </button>
           </div>
         </ShineBorder>

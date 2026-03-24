@@ -20,7 +20,7 @@ export default function ChatPage() {
     {
       id: "1",
       role: "bot",
-      text: "Hi there! I'm TaskPilot. What would you like to get done today? (Try asking me to summarize something, schedule a study session, or remind you to make a call!)",
+      text: "Hi there! I'm FocusFlow. What would you like to get done today? (Try asking me to summarize something, schedule a study session, or remind you to make a call!)",
     },
   ]);
   const [inputValue, setInputValue] = useState("");
@@ -131,7 +131,7 @@ export default function ChatPage() {
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">TaskPilot Assistant</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">FocusFlow Assistant</h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">Phase 2: Automation Engine Active</p>
           </div>
         </div>
@@ -255,7 +255,7 @@ export default function ChatPage() {
           </div>
         </div>
         <p className="text-center text-[10px] text-gray-400 mt-4 font-black uppercase tracking-widest">
-          TaskPilot Intelligent Engine v2.0
+          FocusFlow Intelligent Engine v2.0
         </p>
       </div>
     </div>

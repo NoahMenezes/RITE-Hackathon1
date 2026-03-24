@@ -1,9 +1,9 @@
-# 🚀 TaskPilot Project Roadmap
-Welcome to the TaskPilot MVP development roadmap! This document outlines our step-by-step plan to transform our current Next.js + Turso boilerplate into the ultimate chat-first productivity and automation assistant. 
+# 🚀 FocusFlow Project Roadmap
+Welcome to the FocusFlow MVP development roadmap! This document outlines our step-by-step plan to transform our current Next.js + Turso boilerplate into the ultimate chat-first productivity and automation assistant. 
 Team: Claim a task, mark it as in-progress (`[~]`), and check it off (`[x]`) when done.
 ---
 ## 🏗️ Phase 1: Core Chat Interface & Foundation
-*Goal: Build the primary way the user interacts with TaskPilot.*
+*Goal: Build the primary way the user interacts with FocusFlow.*
 - [x] **1.1 Database Schema Setup (Turso)**
   - Create `tasks` table: `id`, `user_id`, `title`, `type` (automated, scheduled, quick), `status` (pending, completed), `scheduled_for`, `duration_mins`.
   - Create `chat_history` table: `id`, `user_id`, `message`, `role` (user, bot), `created_at`.
