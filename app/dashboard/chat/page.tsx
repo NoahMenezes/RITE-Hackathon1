@@ -9,6 +9,7 @@ import remarkGfm from "remark-gfm";
 // Simple intent parsing without AI
 function parseIntent(text: string): TaskIntent | "unknown" {
   const lower = text.toLowerCase();
+  if (lower.startsWith("message on")) return "whatsapp";
   if (
     lower.includes("focus") ||
     lower.includes("start") ||
@@ -37,7 +38,13 @@ function parseIntent(text: string): TaskIntent | "unknown" {
   return "unknown";
 }
 
-type TaskIntent = "focus" | "scheduled" | "quick" | "automation" | "unknown";
+type TaskIntent =
+  | "focus"
+  | "scheduled"
+  | "quick"
+  | "automation"
+  | "whatsapp"
+  | "unknown";
 import {
   autoScheduleTask,
   getScheduledTasks,
@@ -184,6 +191,8 @@ export default function ChatPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileContent, setFileContent] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
+  const [showWhatsApp, setShowWhatsApp] = useState(false);
+  const [waNumber, setWaNumber] = useState("");
   const [pendingPomodoro, setPendingPomodoro] = useState<{
     title: string;
     duration: number;
@@ -394,6 +403,30 @@ export default function ChatPage() {
     const duration = parseDuration(userText) || 25;
 
     try {
+      if (intent === "whatsapp") {
+        const number = userText.replace(/i?message on /i, "").trim();
+        setWaNumber(number);
+        setShowWhatsApp(true);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `📱 **WhatsApp Automation Initiated!**\n\nOpening WhatsApp to message **${number}**...`,
+          },
+        ]);
+
+        try {
+          await fetch("/api/whatsapp", {
+            method: "POST",
+            body: JSON.stringify({ number }),
+          });
+        } catch (_) {}
+
+        setIsTyping(false);
+        return;
+      }
+
       if (intent === "focus" && user) {
         if (duration > 60) {
           setPendingPomodoro({ title: userText, duration });
@@ -651,7 +684,9 @@ export default function ChatPage() {
                 key={msg.id}
                 className="mb-2 p-2 bg-[#2a2a2a] rounded text-sm text-zinc-300 hover:bg-[#333333] transition-colors cursor-pointer"
               >
-                <span className="font-bold">{msg.role === "user" ? "You: " : "Bot: "}</span>
+                <span className="font-bold">
+                  {msg.role === "user" ? "You: " : "Bot: "}
+                </span>
                 {msg.text.substring(0, 50)}
                 {msg.text.length > 50 ? "..." : ""}
               </div>
@@ -660,7 +695,6 @@ export default function ChatPage() {
         </div>
         {/* Main chat container — flex 1 */}
         <div className="relative z-10 flex flex-col flex-1 w-full h-full max-w-7xl mx-auto">
-
           {/* ── Messages Area ── */}
           <div className="flex-1 overflow-y-auto scrollbar-custom px-4 py-8 space-y-6 pb-24">
             <AnimatePresence initial={false}>
@@ -788,6 +822,27 @@ export default function ChatPage() {
           <p className="text-center text-[11px] text-[#9B9B9B] mt-2">
             FocusFlow can make mistakes. Check important info.
           </p>
+          {showWhatsApp && (
+            <div className="w-full h-64 border-t border-[#424242] bg-[#1a1a1a] p-4 flex flex-col mt-4 rounded-xl">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-white font-bold text-sm">
+                  WhatsApp Screen (Messaging {waNumber})
+                </h3>
+                <button
+                  onClick={() => setShowWhatsApp(false)}
+                  className="text-zinc-400 hover:text-white text-xs"
+                >
+                  Close
+                </button>
+              </div>
+              <div className="flex-1 bg-black rounded border border-[#333] flex items-center justify-center relative overflow-hidden">
+                <p className="text-zinc-500 text-sm z-10">
+                  Running pyautogui automation...
+                </p>
+                <div className="absolute inset-0 bg-green-500/10 animate-pulse"></div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Daily Plan Sidebar */}
