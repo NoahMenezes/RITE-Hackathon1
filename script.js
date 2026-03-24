@@ -10,7 +10,7 @@ let remaining = POMODORO_SECONDS;
 
 // --- PARSING: raw text → tasks ---
 function parseTasks(rawInput) {
-    const tasks = [];
+    const list = [];
     const phrases = rawInput.trim().split(/,|and/i); // split by comma or "and"
 
     function getMinutes(text) {
@@ -56,10 +56,88 @@ function parseTasks(rawInput) {
             task.type = "light";
         }
 
-        tasks.push(task);
+        list.push(task);
     }
 
-    return tasks;
+    return list;
 }
 
-// --- RENDER SCHEDULE 
+// --- RENDER SCHEDULE ---
+function renderSchedule() {
+    const container = document.getElementById("schedule");
+    container.innerHTML = "";
+
+    if (tasks.length === 0) {
+        container.innerHTML = "<p>No tasks planned yet.</p>";
+        return;
+    }
+
+    tasks.forEach((task, index) => {
+        const div = document.createElement("div");
+        div.className = `task-block ${task.type} ${task.isCompleted ? 'completed' : ''}`;
+        div.innerHTML = `
+            <strong>${task.label}</strong> (${task.minutes} mins)
+            ${task.isCompleted ? ' ✓' : ''}
+        `;
+        div.onclick = () => startTimer(index);
+        container.appendChild(div);
+    });
+
+    document.getElementById("scheduledCount").innerText = tasks.length;
+    document.getElementById("completedCount").innerText = completedTasks;
+    document.getElementById("pomodoroCount").innerText = pomodoroSessions;
+}
+
+// --- TIMER FOCUS ---
+function startTimer(index) {
+    const task = tasks[index];
+    if (task.isCompleted) return;
+
+    remaining = POMODORO_SECONDS; // Reset to 25 mins or task mins if desired
+    updateTimerDisplay();
+
+    document.getElementById("timerView").classList.remove("hidden");
+    document.getElementById("doneBtn").classList.add("hidden");
+
+    if (timer) clearInterval(timer);
+
+    timer = setInterval(() => {
+        remaining--;
+        updateTimerDisplay();
+
+        if (remaining <= 0) {
+            clearInterval(timer);
+            document.getElementById("doneBtn").classList.remove("hidden");
+            pomodoroSessions++;
+            document.getElementById("pomodoroCount").innerText = pomodoroSessions;
+        }
+    }, 1000);
+
+    document.getElementById("doneBtn").onclick = () => {
+        task.isCompleted = true;
+        completedTasks++;
+        document.getElementById("timerView").classList.add("hidden");
+        renderSchedule();
+    };
+}
+
+function updateTimerDisplay() {
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    document.getElementById("timer").innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    const percent = ((POMODORO_SECONDS - remaining) / POMODORO_SECONDS) * 100;
+    document.getElementById("progressBar").style.width = `${percent}%`;
+}
+
+// --- LISTENERS ---
+document.getElementById("planBtn").onclick = () => {
+    const input = document.getElementById("userInput").value;
+    tasks = parseTasks(input);
+    completedTasks = 0;
+    renderSchedule();
+};
+
+document.getElementById("stopTimer").onclick = () => {
+    clearInterval(timer);
+    document.getElementById("timerView").classList.add("hidden");
+};
