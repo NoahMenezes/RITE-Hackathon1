@@ -8,6 +8,7 @@ import ShineBorder from "../components/ShineBorder";
 import { createClient } from "../../lib/supabase/client";
 import { AnimatedList } from "../components/AnimatedList";
 import { cn } from "../../lib/utils";
+import { sendAuthNotification } from "../actions/auth-emails";
 
 const Notification = ({ name, description, icon, color, time }: any) => {
     return (
@@ -51,6 +52,10 @@ export default function LoginPage() {
             alert("ACCESS DENIED: " + error.message);
         } else {
             console.log("ACCESS GRANTED");
+
+            // Send secondary email via Resend
+            await sendAuthNotification(email, "login");
+
             setNotifications([{ name: "Access Verified", description: "Identity confirmed.", time: "GRANTED", icon: "🗝️", color: "#3b82f6" }]);
             window.location.href = "/dashboard";
         }

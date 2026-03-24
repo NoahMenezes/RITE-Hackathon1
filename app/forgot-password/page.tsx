@@ -8,6 +8,7 @@ import ShineBorder from "../components/ShineBorder";
 import { createClient } from "../../lib/supabase/client";
 import { AnimatedList } from "../components/AnimatedList";
 import { cn } from "../../lib/utils";
+import { sendAuthNotification } from "../actions/auth-emails";
 
 const Notification = ({ name, description, icon, color, time }: any) => {
     return (
@@ -52,6 +53,10 @@ export default function ForgotPasswordPage() {
             alert("TRANSMISSION ERROR: " + error.message);
         } else {
             console.log("RECOVERY KEY TRANSMITTED.");
+
+            // Send secondary email via Resend
+            await sendAuthNotification(email, "reset");
+
             setNotifications([{ name: "Key Transmitted", description: "Recovery sequence sent to identity UID.", time: "SUCCESS", icon: "📧", color: "#ef4444" }]);
             alert("TRANSMIT SUCCESS: Recovery link sent to your email!");
         }

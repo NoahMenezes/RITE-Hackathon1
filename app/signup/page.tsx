@@ -8,6 +8,7 @@ import ShineBorder from "../components/ShineBorder";
 import { createClient } from "../../lib/supabase/client";
 import { AnimatedList } from "../components/AnimatedList";
 import { cn } from "../../lib/utils";
+import { sendAuthNotification } from "../actions/auth-emails";
 
 const Notification = ({ name, description, icon, color, time }: any) => {
     return (
@@ -62,6 +63,10 @@ export default function SignupPage() {
             alert("SIGNUP DENIED: " + error.message);
         } else {
             console.log("IDENTITY ESTABLISHED. CHECK ENCRYPTED UID FOR ACCESS.");
+
+            // Send secondary email via Resend
+            await sendAuthNotification(email, "signup");
+
             setNotifications([{
                 name: "Access Granted",
                 description: "Check your email for access protocol.",
@@ -69,7 +74,7 @@ export default function SignupPage() {
                 icon: "✔️",
                 color: "#10b981",
             }]);
-            alert("IDENTITY ESTABLISHED: Please check your email inbox to verify your account!");
+            alert("IDENTITY ESTABLISHED: Welcome to FocusFlow! We've sent you two emails—one to verify your account and another confirmed your identity has been established.");
         }
         setLoading(false);
         setTimeout(() => setNotifications([]), 5000);
