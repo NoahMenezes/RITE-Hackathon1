@@ -11,23 +11,23 @@ export async function POST(req: Request) {
   try {
     const { message, history } = await req.json();
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    // Temporarily mock the response for debugging
+    const mockResponses = [
+      "That's an interesting point! Can you tell me more?",
+      "I understand. Let me help you with that.",
+      "Great question! Here's what I think...",
+      "Thanks for sharing. How can I assist further?",
+      "Noted! Is there anything else on your mind?",
+    ];
+    const randomResponse =
+      mockResponses[Math.floor(Math.random() * mockResponses.length)];
+    const text = `Mock response: ${randomResponse} (Original message: "${message}")`;
 
-    const chat = model.startChat({
-      history: history || [],
-      generationConfig: {
-        maxOutputTokens: 1000,
-      },
-    });
-
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    const text = response.text();
-    console.log("Gemini response text:", text);
+    console.log("Mock response text:", text);
 
     return NextResponse.json({ text });
   } catch (error: unknown) {
-    console.error("Gemini API Error:", error);
+    console.error("Chat API Error:", error);
     return NextResponse.json(
       { error: (error as Error).message },
       { status: 500 },
