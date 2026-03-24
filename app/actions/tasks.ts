@@ -34,6 +34,22 @@ export async function getScheduledTasks(userId: string) {
   }
 }
 
+export async function getTasksByDate(userId: string, date: string) {
+  try {
+    const start = new Date(date + "T00:00:00").toISOString();
+    const end = new Date(date + "T23:59:59").toISOString();
+    const result = await db.execute({
+      sql: "SELECT * FROM tasks WHERE user_id = ? AND scheduled_for >= ? AND scheduled_for <= ? ORDER BY scheduled_for ASC",
+      args: [parseInt(userId), start, end],
+    });
+    return { success: true, tasks: JSON.parse(JSON.stringify(result.rows)) };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Failed to fetch tasks by date:", error);
+    return { success: false, error: message };
+  }
+}
+
 export async function createTask(data: {
   userId: string;
   title: string;
