@@ -20,11 +20,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect signed-in users away from auth pages
+  // Redirect signed-in users away from auth and landing pages
   if (
     request.method === "GET" &&
     user &&
-    (request.nextUrl.pathname === "/login" ||
+    (request.nextUrl.pathname === "/" ||
+      request.nextUrl.pathname === "/login" ||
       request.nextUrl.pathname === "/signup")
   ) {
     const url = request.nextUrl.clone();
