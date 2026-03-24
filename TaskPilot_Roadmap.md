@@ -28,13 +28,13 @@ Team: Claim a task, mark it as in-progress (`[~]`), and check it off (`[x]`) whe
 ## 🤖 Phase 2: The Automation Engine (The "WOW" Factor)
 *Goal: Allow the bot to execute tasks instantly in the chat.*
 
-- [ ] **2.1 LLM Integration (OpenAI/Gemini)**
+- [x] **2.1 LLM Integration (OpenAI/Gemini)**
   - Set up an API route (e.g., `/app/api/chat/route.ts`) to handle complex queries.
   - Implement the "Summarize this text" feature.
   - Have the bot reply directly in the chat with the summarized content.
-- [ ] **2.2 Auto-Execute UI**
+- [x] **2.2 Auto-Execute UI**
   - Render automation results beautifully in the chat (e.g., Markdown support, copy-to-clipboard button).
-- [ ] **2.3 Quick Task Burst Grouping**
+- [x] **2.3 Quick Task Burst Grouping**
   - Detect multiple quick tasks and auto-group them into a single "15-min Quick Task Burst".
 
 ---
