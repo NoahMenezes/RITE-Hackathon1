@@ -1160,7 +1160,7 @@ export default function ChatPage() {
                   >
                     <div
                       className={cn(
-                        "prose prose-sm md:prose-base max-w-none text-[#ECECEC] prose-p:leading-relaxed prose-strong:text-white prose-code:text-[#ECECEC] prose-pre:bg-[#000000] prose-pre:border prose-pre:border-[#333333] prose-li:text-[#ECECEC] prose-headings:text-white prose-a:text-sky-400 hover:prose-a:text-sky-300",
+                        "prose prose-sm md:prose-base max-w-none text-[#ECECEC] prose-p:leading-relaxed prose-strong:text-white prose-code:text-[#ECECEC] prose-pre:bg-[#000000] prose-pre:border prose-pre:border-[#333333] prose-li:text-[#ECECEC] prose-headings:text-white prose-blockquote:text-[#ECECEC] prose-a:text-sky-400 hover:prose-a:text-sky-300",
                         msg.role === "user"
                           ? "bg-[#2f2f2f] px-5 py-2.5 rounded-3xl"
                           : "",
