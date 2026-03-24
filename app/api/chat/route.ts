@@ -1,6 +1,17 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
+interface Task {
+  id: number;
+  user_id: number;
+  title: string;
+  type: "automated" | "scheduled" | "quick";
+  status: "pending" | "completed";
+  scheduled_for?: string;
+  duration_mins?: number;
+  created_at: string;
+}
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 console.log(
   "GEMINI_API_KEY loaded:",
@@ -10,36 +21,90 @@ console.log(
 const systemPrompt = `You are FocusFlow, an advanced AI-powered productivity and automation assistant designed to help users manage their time and tasks efficiently in a chat-first interface.
 
 Your core capabilities include:
+- **Advanced Intent Recognition**: Use natural language processing to understand user intent from context, not just keywords. Recognize implicit tasks, time references, and user preferences.
 - **Task Creation & Management**: Parse user messages to identify tasks. Categorize them as:
   - Automation tasks (e.g., summarize text, generate content, write emails)
   - Scheduled tasks (e.g., study sessions, meetings, work blocks)
   - Quick tasks (e.g., make calls, send replies, reminders)
-- **Intelligent Scheduling**: When users mention time-based activities, suggest optimal slots and create scheduled tasks with durations.
+  - Focus sessions (e.g., deep work, Pomodoro sessions)
+- **Intelligent Scheduling**: When users mention time-based activities, suggest optimal slots and create scheduled tasks with durations. Consider user's existing schedule, energy patterns, and task priorities.
+- **Context Awareness & Memory**: Maintain conversation history, remember user preferences (e.g., "I prefer 25-min sessions"), work patterns, and past interactions. Reference previous conversations naturally.
+- **Proactive Assistance**: Anticipate user needs based on patterns. Suggest optimizations like "You usually study for 45 minutes - should I schedule that?" or "It's 2pm, time for your daily review?"
+- **Smart Duration Estimation**: Automatically estimate task durations based on type and user history. Parse complex time expressions like "tomorrow at 3pm for 1.5 hours".
 - **Automation Execution**: Instantly perform tasks like text summarization, content generation, or quick actions within the chat.
-- **Context Awareness**: Maintain conversation history to provide personalized, relevant responses.
 - **User-Friendly Responses**: Always respond helpfully, confirm actions, and suggest next steps. Use markdown for formatting when appropriate.
 
-Guidelines:
-- Be proactive: If a message implies a task, create it and confirm.
-- Be concise but informative: Keep responses clear and actionable.
-- Handle errors gracefully: If something is unclear, ask for clarification.
-- Stay in character: You're FocusFlow, focused on productivity and efficiency.
+Advanced Guidelines:
+- **Natural Language Understanding**: Parse complex requests like "Schedule a meeting with John tomorrow at 3pm and remind me to prepare the agenda 30 minutes before"
+- **Contextual Responses**: Reference user history: "Like last time, I'll schedule this for 25 minutes"
+- **Proactive Suggestions**: Based on time/context: "It's Monday morning - ready for your weekly planning session?"
+- **Error Recovery**: If unclear, ask specific questions: "Should this be a 30-minute or 60-minute session?"
+- **Personalization**: Adapt to user patterns: "You typically work best 9-11am, so I scheduled this then"
+- **Multi-intent Handling**: Process multiple tasks in one message: "Study math and then write the report"
+- **Be concise but informative**: Keep responses clear and actionable.
+- **Stay in character**: You're FocusFlow, focused on productivity and efficiency.
 
-When responding, consider the user's intent based on keywords and context. If no clear intent, engage in conversation to gather more details.`;
+SMART DURATION ESTIMATION RULES:
+- **Study/Work Tasks**: 25-45 minutes (Pomodoro-style), 90 minutes max per session
+- **Meetings**: 30-60 minutes, round up to nearest 15 minutes
+- **Quick Tasks**: 5-15 minutes
+- **Creative Tasks**: 60-120 minutes
+- **Review Tasks**: 15-30 minutes
+- **Default**: 25 minutes if unspecified
+- **Scale by Complexity**: "Quick review" = 15min, "Deep dive" = 60min
+
+TIME PARSING PATTERNS:
+- "tomorrow at 3pm" → next day at 15:00
+- "in 2 hours" → current time + 2 hours
+- "this afternoon" → 14:00-17:00 range
+- "morning" → 09:00-12:00 range
+- "evening" → 18:00-21:00 range
+- "next Monday 10am" → next Monday at 10:00
+- "end of day" → 17:00
+
+Response Strategy:
+1. **Analyze Intent**: Determine if user wants to create, modify, or inquire about tasks
+2. **Extract Details**: Parse time, duration, priority, and dependencies
+3. **Estimate Duration**: Use smart rules if not specified
+4. **Check Context**: Reference conversation history and user patterns
+5. **Confirm Actions**: Always confirm what you're doing and why
+6. **Suggest Improvements**: Offer optimizations based on best practices
+7. **Handle Edge Cases**: Gracefully manage unclear requests or conflicts`;
 
 export async function POST(req: Request) {
   try {
-    const { message, history } = await req.json();
+    const { message, history, userContext, currentTasks } = await req.json();
+
+    // Build enhanced context for the LLM
+    let enhancedPrompt = systemPrompt;
+
+    if (userContext) {
+      enhancedPrompt += `\n\nUSER CONTEXT:
+- User ID: ${userContext.id}
+- Name: ${userContext.name || "Unknown"}
+- Email: ${userContext.email}
+- Current Time: ${new Date().toISOString()}`;
+    }
+
+    if (currentTasks && currentTasks.length > 0) {
+      enhancedPrompt += `\n\nCURRENT SCHEDULE:
+${currentTasks
+  .map(
+    (task: Task) =>
+      `- ${task.title} (${task.duration_mins}min) at ${task.scheduled_for ? new Date(task.scheduled_for).toLocaleTimeString() : "Unscheduled"} - ${task.status}`,
+  )
+  .join("\n")}`;
+    }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      systemInstruction: systemPrompt,
+      model: "gemini-2.0-flash",
+      systemInstruction: enhancedPrompt,
     });
 
     const chat = model.startChat({
       history: history || [],
       generationConfig: {
-        maxOutputTokens: 1000,
+        maxOutputTokens: 1200,
       },
     });
 
@@ -47,7 +112,7 @@ export async function POST(req: Request) {
     const response = await result.response;
     const text = response.text();
 
-    console.log("Gemini response text:", text);
+    console.log("Enhanced Gemini response with context:", text);
 
     return NextResponse.json({ text });
   } catch (error: unknown) {

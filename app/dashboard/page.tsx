@@ -3,19 +3,18 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "../../lib/useUser";
-import { getScheduledTasks, seedDemoData } from "../actions/tasks";
+import Footer from "../components/Footer";
+import ShineBorder from "../components/ShineBorder";
+import { getScheduledTasks, getTasks, seedDemoData } from "../actions/tasks";
 import {
   Play,
-  Sparkles,
-  Calendar,
+  TrendingUp,
   Clock,
   CheckCircle,
-  BarChart3,
-  Zap,
+  Target,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "../../lib/utils";
-import { AnimatedList } from "../components/AnimatedList";
 
 interface Task {
   id: number;
@@ -28,83 +27,46 @@ interface Task {
   created_at: string;
 }
 
-interface Stat {
-  label: string;
+function AnalyticsCard({
+  title,
+  value,
+  icon: Icon,
+  trend,
+}: {
+  title: string;
   value: string;
-  icon: React.ReactNode;
-  color: string;
-}
-
-interface NotificationProps {
-  name: string;
-  description: string;
-  icon: string;
-  color: string;
-  time: string;
-}
-
-const Notification = ({
-  name,
-  description,
-  icon,
-  color,
-  time,
-}: NotificationProps) => {
+  icon: React.ComponentType<{ className?: string }>;
+  trend?: string;
+}) {
   return (
-    <figure
-      className={cn(
-        "relative mx-auto min-h-fit w-full max-w-[400px] cursor-pointer overflow-hidden rounded-2xl p-6",
-        "transition-all duration-300 ease-in-out hover:scale-[103%]",
-        "bg-zinc-950/90 backdrop-blur-2xl border border-zinc-800 shadow-2xl flex flex-row items-center gap-6",
-      )}
-    >
-      <div
-        className="flex size-12 items-center justify-center shrink-0 rounded-xl border border-white/10 font-black text-xl"
-        style={{ backgroundColor: color }}
-      >
-        <span>{icon}</span>
+    <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-blue-500/50 transition-all">
+      <div className="flex items-center justify-between mb-2">
+        <Icon className="w-5 h-5 text-blue-400" />
+        {trend && (
+          <span className="text-xs text-green-400 font-medium">{trend}</span>
+        )}
       </div>
-      <div className="flex flex-col overflow-hidden">
-        <figcaption className="flex flex-row items-center text-base font-bold text-white">
-          <span>{name}</span>
-          <span className="mx-2 opacity-30">·</span>
-          <span className="text-xs text-zinc-500">{time}</span>
-        </figcaption>
-        <p className="text-sm font-medium text-zinc-400">{description}</p>
-      </div>
-    </figure>
+      <div className="text-2xl font-black text-white mb-1">{value}</div>
+      <div className="text-xs text-zinc-400 font-medium">{title}</div>
+    </div>
   );
-};
+}
 
-const TaskSkeleton = () => (
-  <div className="relative p-6 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col md:flex-row md:justify-between md:items-center gap-4 animate-pulse">
-    <div className="absolute w-4 h-4 bg-zinc-950 border-2 border-zinc-700 rounded-full -left-[41px] top-1/2 -translate-y-1/2" />
-    <div className="flex-1">
-      <div className="h-5 bg-white/10 rounded-md mb-3 w-3/4"></div>
-      <div className="h-4 bg-white/5 rounded-md w-1/2"></div>
-    </div>
-    <div className="flex items-center gap-4">
-      <div className="h-8 bg-white/10 rounded-md w-20"></div>
-      <div className="w-10 h-10 bg-white/10 rounded-full"></div>
-    </div>
-  </div>
-);
-
-const StatCard = ({ stat }: { stat: Stat }) => (
-  <div className="p-8 rounded-3xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 shadow-xl">
-    <div className="flex items-center gap-6">
-      <div className={`p-5 rounded-2xl ${stat.color} [&>svg]:w-8 [&>svg]:h-8`}>
-        {stat.icon}
+function TaskSkeleton() {
+  return (
+    <div className="relative p-6 border border-zinc-800 bg-zinc-900/50 flex flex-col md:flex-row md:justify-between md:items-center gap-4 animate-pulse">
+      <div className="absolute w-3 h-3 bg-zinc-700 rounded-full -left-[39px] top-1/2 -translate-y-1/2 ring-4 ring-zinc-950" />
+      <div className="flex-1">
+        <div className="h-4 bg-zinc-700 rounded mb-2 w-3/4"></div>
+        <div className="h-3 bg-zinc-700 rounded w-1/2"></div>
       </div>
-      <div>
-        <p className="text-4xl font-black text-white mb-1">{stat.value}</p>
-        <p className="text-base font-medium text-zinc-400 uppercase tracking-widest">
-          {stat.label}
-        </p>
+      <div className="flex items-center gap-4 self-start md:self-auto">
+        <div className="h-6 bg-zinc-700 rounded w-16"></div>
+        <div className="w-8 h-8 bg-zinc-700 rounded-full"></div>
       </div>
     </div>
-  </div>
-);
+  );
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -112,16 +74,68 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [seedingDemo, setSeedingDemo] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationProps[]>([]);
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
+  const [notificationPermission, setNotificationPermission] =
+    useState<NotificationPermission>("default");
 
   useEffect(() => {
     if (user) {
+      // Load scheduled tasks for timeline
       getScheduledTasks(user.id.toString()).then((res) => {
         if (res.success && res.tasks) setTasks(res.tasks as unknown as Task[]);
         setLoadingTasks(false);
       });
+
+      // Load all tasks for analytics
+      getTasks(user.id.toString()).then((res) => {
+        if (res.success && res.tasks) setAllTasks(res.tasks as Task[]);
+      });
     }
   }, [user]);
+
+  // Request notification permission and set up smart notifications
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotificationPermission(Notification.permission);
+
+      if (Notification.permission === "default") {
+        Notification.requestPermission().then((permission) => {
+          setNotificationPermission(permission);
+        });
+      }
+    }
+  }, []);
+
+  // Smart notification system for upcoming tasks
+  useEffect(() => {
+    if (notificationPermission !== "granted" || allTasks.length === 0) return;
+
+    const checkUpcomingTasks = () => {
+      const now = new Date();
+      const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+
+      allTasks.forEach((task) => {
+        if (task.status === "pending" && task.scheduled_for) {
+          const taskTime = new Date(task.scheduled_for);
+
+          // Notify if task starts within next 5 minutes
+          if (taskTime > now && taskTime <= fiveMinutesFromNow) {
+            new Notification(`⏰ ${task.title} starts soon!`, {
+              body: `Your ${task.duration_mins}-minute session begins at ${taskTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+              icon: "/favicon.ico",
+              tag: `task-${task.id}`, // Prevent duplicate notifications
+            });
+          }
+        }
+      });
+    };
+
+    // Check immediately and then every minute
+    checkUpcomingTasks();
+    const interval = setInterval(checkUpcomingTasks, 60000);
+
+    return () => clearInterval(interval);
+  }, [allTasks, notificationPermission]);
 
   const handleSeedDemo = async () => {
     if (!user) return;
@@ -132,8 +146,12 @@ export default function DashboardPage() {
       if (result.success) {
         toast.success("Demo data loaded! Check out your new schedule.");
         // Refresh tasks
-        const res = await getScheduledTasks(user.id.toString());
-        if (res.success && res.tasks) setTasks(res.tasks);
+        const scheduledRes = await getScheduledTasks(user.id.toString());
+        if (scheduledRes.success && scheduledRes.tasks)
+          setTasks(scheduledRes.tasks);
+
+        const allRes = await getTasks(user.id.toString());
+        if (allRes.success && allRes.tasks) setAllTasks(allRes.tasks as Task[]);
       } else {
         toast.error(`Failed to load demo data: ${result.error}`);
       }
@@ -144,57 +162,54 @@ export default function DashboardPage() {
     }
   };
 
-  const [stats, setStats] = useState<Stat[]>([]);
-
   useEffect(() => {
     if (!loading && !user) {
       window.location.href = "/login";
     }
   }, [user, loading]);
 
-  useEffect(() => {
-    if (user && tasks.length > 0) {
-      const completed = tasks.filter((t) => t.status === "completed").length;
-      const total = tasks.length;
-      const todayTasks = tasks.filter((t) => {
-        const today = new Date().toDateString();
-        return (
-          t.scheduled_for && new Date(t.scheduled_for).toDateString() === today
-        );
-      }).length;
-      const totalMins = tasks.reduce(
-        (sum, t) => sum + (t.duration_mins || 0),
-        0,
-      );
+  // Calculate analytics
+  const analytics = React.useMemo(() => {
+    const completedTasks = allTasks.filter(
+      (task) => task.status === "completed",
+    );
+    const pendingTasks = allTasks.filter((task) => task.status === "pending");
+    const totalTime = allTasks.reduce(
+      (sum, task) => sum + (task.duration_mins || 0),
+      0,
+    );
+    const completedTime = completedTasks.reduce(
+      (sum, task) => sum + (task.duration_mins || 0),
+      0,
+    );
 
-      setStats([
-        {
-          label: "Tasks Completed",
-          value: completed.toString(),
-          icon: <CheckCircle className="w-6 h-6" />,
-          color: "bg-green-500/20 text-green-400",
-        },
-        {
-          label: "Total Tasks",
-          value: total.toString(),
-          icon: <BarChart3 className="w-6 h-6" />,
-          color: "bg-blue-500/20 text-blue-400",
-        },
-        {
-          label: "Today's Tasks",
-          value: todayTasks.toString(),
-          icon: <Calendar className="w-6 h-6" />,
-          color: "bg-purple-500/20 text-purple-400",
-        },
-        {
-          label: "Focus Time",
-          value: `${totalMins}m`,
-          icon: <Clock className="w-6 h-6" />,
-          color: "bg-orange-500/20 text-orange-400",
-        },
-      ]);
-    }
-  }, [user, tasks]);
+    const completionRate =
+      allTasks.length > 0
+        ? Math.round((completedTasks.length / allTasks.length) * 100)
+        : 0;
+
+    // Today's tasks
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todaysTasks = allTasks.filter((task) => {
+      if (!task.created_at) return false;
+      const taskDate = new Date(task.created_at);
+      return taskDate >= today && taskDate < tomorrow;
+    });
+
+    return {
+      totalTasks: allTasks.length,
+      completedTasks: completedTasks.length,
+      pendingTasks: pendingTasks.length,
+      totalTime,
+      completedTime,
+      completionRate,
+      todaysTasks: todaysTasks.length,
+    };
+  }, [allTasks]);
 
   if (loading) {
     return (
@@ -214,135 +229,122 @@ export default function DashboardPage() {
 
   return (
     <div className="relative min-h-screen bg-transparent text-white selection:bg-blue-500/40">
-      {notifications.length > 0 && (
-        <div className="fixed top-32 right-8 w-full max-w-[400px] z-[200]">
-          <AnimatedList delay={100}>
-            {notifications.map((n, i) => (
-              <Notification key={i} {...n} />
-            ))}
-          </AnimatedList>
-        </div>
-      )}
-
-      <main className="flex flex-col items-center justify-start pt-32 pb-20 px-6 lg:px-12 relative z-10 w-full max-w-[1400px] mx-auto min-h-screen">
-        <div className="flex flex-col items-center justify-center text-center mb-16 w-full">
-          <h1 className="text-5xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-500 tracking-tight leading-tight mb-6 text-center">
+      <main className="flex flex-col items-center justify-center pb-40 px-12 relative z-10 w-full min-h-screen">
+        <div className="text-center mb-20 max-w-4xl w-full mt-12">
+          <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-500 tracking-tight leading-tight mb-6">
             Main <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-400">
               Dashboard.
             </span>
           </h1>
-          <div className="w-32 h-2 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto my-8 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
-          <p className="text-sm text-zinc-400 font-medium text-center">
+          <div className="w-24 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto my-8 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+          <p className="text-sm text-zinc-400 font-medium">
             Access Granted. Identity: {user.name || user.email}
           </p>
         </div>
 
-        {/* Stats Section */}
-        <div className="w-full mb-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <StatCard key={index} stat={stat} />
-            ))}
-          </div>
-        </div>
-
-        <div className="w-full space-y-24">
-          {/* Daily Plan Section */}
-          <div className="space-y-8">
-            <div className="flex items-center gap-6 border-b border-white/10 pb-8">
-              <div className="w-2 h-12 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full" />
-              <div>
-                <h2 className="text-4xl md:text-5xl font-bold text-white tracking-wide">
-                  Daily Plan
-                </h2>
-                <p className="text-zinc-400 text-lg mt-2">
-                  Your scheduled tasks and focus sessions
-                </p>
+        <ShineBorder
+          borderRadius={24}
+          borderWidth={1.5}
+          color={["#3b82f6", "#6366f1", "#8b5cf6"]}
+          duration={10}
+          className="w-full max-w-4xl !bg-zinc-950/80 !backdrop-blur-3xl !border-zinc-900 shadow-2xl p-0"
+        >
+          <div className="p-12 md:p-24 space-y-12 w-full">
+            {/* Analytics Section */}
+            <div className="space-y-6">
+              <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8">
+                Productivity Analytics
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <AnalyticsCard
+                  title="Completion Rate"
+                  value={`${analytics.completionRate}%`}
+                  icon={Target}
+                  trend={
+                    analytics.completedTasks > 0 ? "+12% this week" : undefined
+                  }
+                />
+                <AnalyticsCard
+                  title="Tasks Today"
+                  value={analytics.todaysTasks.toString()}
+                  icon={CheckCircle}
+                />
+                <AnalyticsCard
+                  title="Total Time"
+                  value={`${Math.round(analytics.totalTime / 60)}h`}
+                  icon={Clock}
+                />
+                <AnalyticsCard
+                  title="Focus Sessions"
+                  value={analytics.completedTasks.toString()}
+                  icon={TrendingUp}
+                />
               </div>
             </div>
 
-            <div className="flex flex-col gap-8 w-full">
+            <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8">
+              Daily Plan
+            </h2>
+
+            <div className="flex flex-col gap-6 w-full">
               {loadingTasks ? (
-                <div className="relative border-l-4 border-white/20 ml-8 pl-12 space-y-8">
-                  {[...Array(4)].map((_, i) => (
+                <div className="relative border-l-2 border-zinc-800 ml-6 pl-8 space-y-6">
+                  {[...Array(3)].map((_, i) => (
                     <TaskSkeleton key={i} />
                   ))}
                 </div>
               ) : tasks.length === 0 ? (
-                <div className="p-12 rounded-3xl border border-white/10 bg-white/[0.02] text-center">
-                  <Zap className="w-16 h-16 text-zinc-500 mx-auto mb-4" />
-                  <p className="text-zinc-400 font-medium text-xl">
+                <div className="p-8 rounded-2xl border border-white/5 bg-white/[0.02] text-center">
+                  <p className="text-zinc-400 font-medium">
                     No tasks scheduled for today. Ask FocusFlow to schedule
                     something!
                   </p>
                 </div>
               ) : (
-                <div className="relative border-l-4 border-white/20 ml-8 pl-12 space-y-8">
+                <div className="relative border-l-2 border-white/10 ml-6 pl-8 space-y-6">
                   {tasks.map((task) => (
                     <div
                       key={task.id}
-                      className="relative p-8 rounded-3xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 transition-all duration-500 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-500/10 group backdrop-blur-sm"
+                      className="relative p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] flex flex-col md:flex-row md:justify-between md:items-center gap-4 transition-all duration-300 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 group backdrop-blur-sm"
                     >
-                      <div className="absolute w-6 h-6 bg-zinc-950 border-4 border-blue-500 rounded-full -left-[45px] top-1/2 -translate-y-1/2 group-hover:bg-blue-500 transition-colors duration-300 shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
-                      <div className="flex-1">
-                        <h3 className="text-2xl font-bold text-zinc-100 mb-3 group-hover:text-white transition-colors">
+                      <div className="absolute w-4 h-4 bg-zinc-950 border-2 border-blue-500 rounded-full -left-[41px] top-1/2 -translate-y-1/2 group-hover:bg-blue-500 transition-colors duration-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                      <div>
+                        <h3 className="text-lg font-bold text-zinc-100 mb-2 group-hover:text-white transition-colors">
                           {task.title}
                         </h3>
-                        <p className="text-zinc-400 text-base font-medium flex items-center gap-4 flex-wrap">
-                          <span className="text-blue-400 bg-blue-500/10 px-3 py-1 rounded-lg flex items-center gap-2">
-                            <Clock className="w-4 h-4" />
+                        <p className="text-zinc-400 text-sm font-medium flex items-center gap-2">
+                          <span className="text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md">
                             {task.duration_mins} mins
                           </span>
                           <span className="text-zinc-600">•</span>
-                          <span className="text-zinc-300 flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
+                          <span className="text-zinc-300">
                             {task.scheduled_for
                               ? new Date(task.scheduled_for).toLocaleTimeString(
                                   [],
-                                  {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  },
+                                  { hour: "2-digit", minute: "2-digit" },
                                 )
                               : "Unscheduled"}
                           </span>
-                          <span className="text-zinc-600">•</span>
-                          <span
-                            className={`px-3 py-1 rounded-lg text-sm font-bold uppercase ${task.type === "scheduled" ? "bg-purple-500/10 text-purple-400" : task.type === "quick" ? "bg-green-500/10 text-green-400" : "bg-blue-500/10 text-blue-400"}`}
-                          >
-                            {task.type}
-                          </span>
                         </p>
                       </div>
-                      <div className="flex items-center gap-6 self-start lg:self-auto">
+                      <div className="flex items-center gap-4 self-start md:self-auto mt-2 md:mt-0">
                         <div
-                          className={`px-6 py-3 text-sm font-bold uppercase tracking-wider rounded-xl border ${task.status === "completed" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}
+                          className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border ${task.status === "completed" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}
                         >
                           {task.status}
                         </div>
                         {task.status !== "completed" && (
                           <button
-                            onClick={() => {
-                              setNotifications([
-                                {
-                                  name: "Focus Mode Activated",
-                                  description: `Starting session: ${task.title}`,
-                                  icon: "🚀",
-                                  color: "#3b82f6",
-                                  time: "Just now",
-                                },
-                              ]);
-                              setTimeout(() => {
-                                router.push(
-                                  `/dashboard/focus?taskId=${task.id}&title=${encodeURIComponent(task.title)}`,
-                                );
-                              }, 1500);
-                            }}
-                            className="flex items-center justify-center p-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-blue-500/25 lg:opacity-0 group-hover:opacity-100 focus:opacity-100 outline-none ring-2 ring-transparent focus:ring-blue-400"
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/focus?taskId=${task.id}&title=${encodeURIComponent(task.title)}`,
+                              )
+                            }
+                            className="flex items-center justify-center p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-blue-500/25 md:opacity-0 group-hover:opacity-100 focus:opacity-100 outline-none ring-2 ring-transparent focus:ring-blue-400"
                             title="Start Focus Mode"
                           >
-                            <Play className="w-5 h-5 ml-1" />
+                            <Play className="w-4 h-4 ml-0.5" />
                           </button>
                         )}
                       </div>
@@ -351,54 +353,28 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Quick Actions Section */}
-          <div className="space-y-8">
-            <div className="flex items-center gap-6 border-b border-white/10 pb-8">
-              <div className="w-2 h-12 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full" />
-              <div>
-                <h2 className="text-4xl md:text-5xl font-bold text-white tracking-wide">
-                  Quick Actions
-                </h2>
-                <p className="text-zinc-400 text-lg mt-2">
-                  Jump into productivity mode instantly
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex flex-col sm:flex-row gap-4 mt-12 pt-6 border-t border-white/5">
               <button
                 onClick={handleSeedDemo}
                 disabled={seedingDemo}
-                className="p-8 rounded-3xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-lg transition-all rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 hover:border-purple-500/30 group"
+                className="flex-1 py-4 px-6 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-sm transition-all rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:border-purple-500/30 group"
               >
-                <Sparkles className="w-8 h-8 text-purple-400 group-hover:text-purple-300 transition-colors" />
-                <div className="text-left">
-                  <div className="font-bold">
-                    {seedingDemo ? "Loading Demo..." : "Load Demo Data"}
-                  </div>
-                  <div className="text-sm text-zinc-400">
-                    Populate with sample tasks
-                  </div>
-                </div>
+                <Sparkles className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors" />
+                {seedingDemo ? "Loading Demo..." : "Load Demo Data"}
               </button>
               <button
-                className="p-8 rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 border border-blue-500/50 text-white font-bold text-lg transition-all shadow-lg shadow-blue-500/20 rounded-xl flex items-center justify-center gap-4"
+                className="flex-1 py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 border border-blue-500/50 text-white font-bold text-sm transition-all shadow-lg shadow-blue-500/20 rounded-xl flex items-center justify-center gap-2"
                 onClick={() => router.push("/dashboard/chat")}
               >
-                <Zap className="w-8 h-8" />
-                <div className="text-left">
-                  <div className="font-bold">Launch FocusFlow Chat</div>
-                  <div className="text-sm text-blue-100">
-                    AI-powered task management
-                  </div>
-                </div>
+                Launch FocusFlow Chat
               </button>
             </div>
           </div>
-        </div>
+        </ShineBorder>
       </main>
+
+      <Footer />
     </div>
   );
 }

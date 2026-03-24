@@ -7,7 +7,12 @@ import { Send, Bot, User, Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { parseIntent, TaskIntent } from "../../../lib/parser";
-import { autoScheduleTask } from "../../actions/tasks";
+import {
+  autoScheduleTask,
+  getScheduledTasks,
+  saveChatMessage,
+  getChatHistory,
+} from "../../actions/tasks";
 import { useUser } from "../../../lib/useUser";
 import { toast } from "sonner";
 import { cn } from "../../../lib/utils";
@@ -53,6 +58,56 @@ const Notification = ({
     </figure>
   );
 };
+interface Task {
+  id: number;
+  user_id: number;
+  title: string;
+  type: "automated" | "scheduled" | "quick";
+  status: "pending" | "completed";
+  scheduled_for?: string;
+  duration_mins?: number;
+  created_at: string;
+}
+
+// Helper function to generate proactive suggestions based on context
+function getProactiveSuggestions(currentTasks: Task[]): string[] {
+  const now = new Date();
+  const hour = now.getHours();
+  const suggestions: string[] = [];
+
+  // Time-based suggestions
+  if (hour >= 9 && hour <= 11) {
+    suggestions.push("Start my morning routine");
+  } else if (hour >= 12 && hour <= 14) {
+    suggestions.push("Schedule lunch break");
+  } else if (hour >= 17 && hour <= 19) {
+    suggestions.push("Plan tomorrow's tasks");
+  }
+
+  // Task-based suggestions
+  const pendingTasks = currentTasks.filter((task) => task.status === "pending");
+  if (pendingTasks.length > 0) {
+    suggestions.push("Start next scheduled task");
+  }
+
+  const completedTasks = currentTasks.filter(
+    (task) => task.status === "completed",
+  );
+  if (completedTasks.length > 0 && pendingTasks.length === 0) {
+    suggestions.push("Review completed tasks");
+  }
+
+  // Default helpful suggestions
+  if (suggestions.length < 3) {
+    suggestions.push(
+      "Summarize my day",
+      "Create a focus session",
+      "Check my schedule",
+    );
+  }
+
+  return suggestions.slice(0, 4); // Limit to 4 suggestions
+}
 
 type Message = {
   id: string;
@@ -76,6 +131,7 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [quickTaskBuffer, setQuickTaskBuffer] = useState<string[]>([]);
+  const [currentTasks, setCurrentTasks] = useState<Task[]>([]);
   const [notifications, setNotifications] = useState<NotificationProps[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -87,6 +143,38 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  // Fetch current tasks and chat history for context awareness
+  useEffect(() => {
+    if (user) {
+      // Load current tasks
+      getScheduledTasks(user.id.toString()).then((res) => {
+        if (res.success && res.tasks) {
+          setCurrentTasks(res.tasks);
+        }
+      });
+
+      // Load recent chat history
+      getChatHistory(user.id.toString(), 10).then((res) => {
+        if (res.success && res.messages) {
+          const historyMessages: Message[] = (
+            res.messages as {
+              message: string;
+              role: string;
+              created_at: string;
+            }[]
+          ).map((msg, index: number) => ({
+            id: `history-${index}`,
+            role: msg.role as "user" | "bot",
+            text: msg.message,
+            intent: undefined, // Historical messages don't have parsed intents
+          }));
+
+          setMessages((prev) => [...historyMessages, ...prev]);
+        }
+      });
+    }
+  }, [user]);
+
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
@@ -97,7 +185,7 @@ export default function ChatPage() {
   const handleSend = async () => {
     if (!inputValue.trim()) return;
     const userText = inputValue;
-    const intent = parseIntent(userText);
+    const intent = await parseIntent(userText);
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -105,6 +193,12 @@ export default function ChatPage() {
       intent,
     };
     setMessages((prev) => [...prev, userMessage]);
+
+    // Save user message to database
+    if (user) {
+      saveChatMessage(user.id.toString(), userText, "user");
+    }
+
     setInputValue("");
     setIsTyping(true);
 
@@ -124,14 +218,17 @@ export default function ChatPage() {
           toast.error("Failed to start focus mode!");
           return;
         }
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "bot",
-            text: `🚀 **Focus Mode Initiated!**\n\nI've scheduled a 25-minute focus session for "${userText}" and transitioning you to the deep focus environment now...`,
-          },
-        ]);
+        const focusMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "bot",
+          text: `🚀 **Focus Mode Initiated!**\n\nI've scheduled a 25-minute focus session for "${userText}" and transitioning you to the deep focus environment now...`,
+        };
+        setMessages((prev) => [...prev, focusMsg]);
+
+        // Save focus message to database
+        if (user) {
+          saveChatMessage(user.id.toString(), focusMsg.text, "bot");
+        }
         setIsTyping(false);
         toast.loading("Initiating Focus Sequence...", { duration: 1500 });
         setTimeout(
@@ -187,15 +284,18 @@ export default function ChatPage() {
         const newBuffer = [...quickTaskBuffer, userText];
         setQuickTaskBuffer(newBuffer);
         if (newBuffer.length >= 3) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: (Date.now() + 1).toString(),
-              role: "bot",
-              text: `🚀 **Quick Task Burst Detected!**\n\nI've grouped these 3 tasks into a single **15-min productivity sprint**:\n1. ${newBuffer[0]}\n2. ${newBuffer[1]}\n3. ${newBuffer[2]}\n\nWould you like to start this burst now?`,
-              isQuickBurst: true,
-            },
-          ]);
+          const burstMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `🚀 **Quick Task Burst Detected!**\n\nI've grouped these 3 tasks into a single **15-min productivity sprint**:\n1. ${newBuffer[0]}\n2. ${newBuffer[1]}\n3. ${newBuffer[2]}\n\nWould you like to start this burst now?`,
+            isQuickBurst: true,
+          };
+          setMessages((prev) => [...prev, burstMsg]);
+
+          // Save burst message to database
+          if (user) {
+            saveChatMessage(user.id.toString(), burstMsg.text, "bot");
+          }
           setQuickTaskBuffer([]);
           setIsTyping(false);
           toast.success("Quick Burst grouped successfully!");
@@ -219,6 +319,7 @@ export default function ChatPage() {
         return;
       }
 
+      // 2.1 LLM Integration via API with enhanced context
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -228,30 +329,45 @@ export default function ChatPage() {
             role: m.role === "bot" ? "model" : "user",
             parts: [{ text: m.text }],
           })),
+          userContext: user
+            ? {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+              }
+            : null,
+          currentTasks: currentTasks,
         }),
       });
       const data = await response.json();
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 2).toString(),
-          role: "bot",
-          text:
-            data.text ||
-            "I'm having trouble connecting to my brain right now...",
-          intent,
-        },
-      ]);
+
+      const botMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        role: "bot",
+        text:
+          data.text || "I'm having trouble connecting to my brain right now...",
+        intent,
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+
+      // Save bot message to database
+      if (user) {
+        saveChatMessage(user.id.toString(), botMessage.text, "bot");
+      }
     } catch (error) {
       console.error("Chat Error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 2).toString(),
-          role: "bot",
-          text: "Sorry, I encountered an error processing that request. Please try again.",
-        },
-      ]);
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        role: "bot",
+        text: "Sorry, I encountered an error processing that request. Please try again.",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+
+      // Save error message to database
+      if (user) {
+        saveChatMessage(user.id.toString(), errorMessage.text, "bot");
+      }
       toast.error("Failed to process request");
     } finally {
       setIsTyping(false);

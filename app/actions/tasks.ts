@@ -228,10 +228,12 @@ export async function seedDemoData(userId: string) {
       },
     ];
 
-    const statements: {
+    interface SqlStatement {
       sql: string;
       args: (string | number | null)[];
-    }[] = [
+    }
+
+    const statements: SqlStatement[] = [
       {
         sql: "DELETE FROM tasks WHERE user_id = ?",
         args: [parseInt(userId)],
@@ -261,5 +263,48 @@ export async function seedDemoData(userId: string) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Failed to seed demo data:", error);
     return { success: false, error: message };
+  }
+}
+
+export type ChatRole = "user" | "bot";
+
+export async function saveChatMessage(
+  userId: string,
+  message: string,
+  role: ChatRole,
+) {
+  try {
+    await db.execute({
+      sql: "INSERT INTO chat_history (user_id, message, role) VALUES (?, ?, ?)",
+      args: [parseInt(userId), message, role],
+    });
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Failed to save chat message:", error);
+    return { success: false, error: message };
+  }
+}
+
+export async function getChatHistory(userId: string, limit: number = 20) {
+  try {
+    const result = await db.execute({
+      sql: "SELECT message, role, created_at FROM chat_history WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
+      args: [parseInt(userId), limit],
+    });
+
+    // Return in chronological order (oldest first for conversation context)
+    return {
+      success: true,
+      messages: result.rows.reverse().map((row) => ({
+        message: row.message,
+        role: row.role,
+        created_at: row.created_at,
+      })),
+    };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Failed to get chat history:", error);
+    return { success: false, error: message, messages: [] };
   }
 }
