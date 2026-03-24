@@ -47,9 +47,22 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
 
         if (error) {
-            console.error("Access Denied:", error.message);
-            setNotifications([{ name: "Access Failed", description: error.message || "Incorrect keys provided.", time: "Denied", icon: "🔒", color: "#ef4444" }]);
-            alert("Access Denied: " + error.message);
+            console.error("ACCESS DENIED:", error.message);
+
+            let descriptiveMsg = error.message;
+            if (error.message.includes("Email not confirmed")) {
+                descriptiveMsg = "Identity verification pending. Please check your inbox for the confirmation link.";
+            }
+
+            setNotifications([{
+                name: "Access Failed",
+                description: descriptiveMsg || "Incorrect keys provided.",
+                time: "DENIED",
+                icon: "🔒",
+                color: "#ef4444"
+            }]);
+
+            alert("ACCESS DENIED: " + descriptiveMsg);
         } else {
             console.log("Access Granted");
 
