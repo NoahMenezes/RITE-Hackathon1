@@ -85,7 +85,7 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: userText,
-          history: messages.map((m) => ({
+          history: messages.slice(1).map((m) => ({
             role: m.role === "bot" ? "model" : "user",
             parts: [{ text: m.text }],
           })),
@@ -97,7 +97,8 @@ export default function ChatPage() {
       const botMessage: Message = {
         id: (Date.now() + 2).toString(),
         role: "bot",
-        text: data.text || "I'm having trouble connecting to my brain right now...",
+        text:
+          data.text || "I'm having trouble connecting to my brain right now...",
         intent,
       };
 
@@ -131,8 +132,17 @@ export default function ChatPage() {
             <Bot className="w-5 h-5" />
           </div>
           <div>
+<<<<<<< HEAD
             <h2 className="font-semibold text-gray-900 dark:text-gray-100">FocusFlow Assistant</h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">Phase 2: Automation Engine Active</p>
+=======
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">
+              TaskPilot Assistant
+            </h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Phase 2: Automation Engine Active
+            </p>
+>>>>>>> c820588b75794664883e03926f431a1908f8e996
           </div>
         </div>
         {quickTaskBuffer.length > 0 && (
@@ -160,12 +170,13 @@ export default function ChatPage() {
               )}
 
               <div
-                className={`group relative max-w-[80%] rounded-2xl px-5 py-3 text-sm shadow-sm ${msg.role === "user"
+                className={`group relative max-w-[80%] rounded-2xl px-5 py-3 text-sm shadow-sm ${
+                  msg.role === "user"
                     ? "bg-blue-600 text-white rounded-tr-sm"
                     : msg.isQuickBurst
                       ? "bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-900/20 border border-blue-100 dark:border-blue-900/50 text-gray-800 dark:text-gray-200 rounded-tl-sm"
                       : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-sm"
-                  }`}
+                }`}
               >
                 <div className="prose prose-sm dark:prose-invert prose-p:leading-relaxed prose-pre:bg-gray-900 prose-pre:text-gray-100 max-w-none">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -179,7 +190,11 @@ export default function ChatPage() {
                     className="absolute -right-10 top-2 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
                     title="Copy to clipboard"
                   >
-                    {copiedId === msg.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copiedId === msg.id ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
                   </button>
                 )}
 
@@ -243,7 +258,9 @@ export default function ChatPage() {
               placeholder="Type your task here... (e.g. 'Summarize this doc')"
               className="w-full pl-5 pr-12 py-4 bg-gray-50/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500"
             />
-            <div className={`absolute right-4 top-1/2 -translate-y-1/2 transition-all ${inputValue.trim() ? "opacity-100 scale-100" : "opacity-0 scale-75"}`}>
+            <div
+              className={`absolute right-4 top-1/2 -translate-y-1/2 transition-all ${inputValue.trim() ? "opacity-100 scale-100" : "opacity-0 scale-75"}`}
+            >
               <button
                 onClick={handleSend}
                 disabled={!inputValue.trim() || isTyping}
