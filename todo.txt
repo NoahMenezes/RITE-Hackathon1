@@ -1,3 +1,5 @@
+
+
 1. remove all team button and all related code from the codebase.
 
 2. don't keep the background video on the any page other than the landing page of the website.

@@ -17,16 +17,16 @@ const Notification = ({ name, description, icon, color, time }: any) => {
             "transition-all duration-300 ease-in-out hover:scale-[103%]",
             "bg-zinc-950/90 backdrop-blur-2xl border border-zinc-800 shadow-2xl flex flex-row items-center gap-6"
         )}>
-            <div className="flex size-12 items-center justify-center shrink-0 border border-zinc-700 font-black text-xl" style={{ backgroundColor: color }}>
+            <div className="flex size-12 items-center justify-center shrink-0 border border-zinc-700 font-black text-sm" style={{ backgroundColor: color }}>
                 <span>{icon}</span>
             </div>
             <div className="flex flex-col overflow-hidden">
-                <figcaption className="flex flex-row items-center text-lg font-black uppercase tracking-widest text-white">
+                <figcaption className="flex flex-row items-center text-sm font-black text-white">
                     <span>{name}</span>
                     <span className="mx-2 opacity-30">·</span>
                     <span className="text-xs text-zinc-500">{time}</span>
                 </figcaption>
-                <p className="text-sm font-bold text-zinc-400 uppercase tracking-tighter">{description}</p>
+                <p className="text-sm font-bold text-zinc-400">{description}</p>
             </div>
         </figure>
     )
@@ -44,7 +44,7 @@ export default function SignupPage() {
         e.preventDefault();
         setLoading(true);
 
-        console.log("INITIALIZING SIGNUP PROTOCOL:", email);
+        console.log("Initializing Signup Protocol:", email);
         const { error } = await supabase.auth.signUp({
             email,
             password,
@@ -52,17 +52,17 @@ export default function SignupPage() {
         });
 
         if (error) {
-            console.error("SIGNUP DENIED:", error.message);
+            console.error("Signup Denied:", error.message);
             setNotifications([{
                 name: "Access Denied",
                 description: error.message || "Identity establishment failed.",
-                time: "ERROR",
+                time: "Error",
                 icon: "❌",
                 color: "#ef4444",
             }]);
-            alert("SIGNUP DENIED: " + error.message);
+            alert("Signup Denied: " + error.message);
         } else {
-            console.log("IDENTITY ESTABLISHED. CHECK ENCRYPTED UID FOR ACCESS.");
+            console.log("Identity Established. Check Encrypted Uid For Access.");
 
             // Send secondary email via Resend
             await sendAuthNotification(email, "signup");
@@ -70,11 +70,12 @@ export default function SignupPage() {
             setNotifications([{
                 name: "Access Granted",
                 description: "Check your email for access protocol.",
-                time: "SUCCESS",
+                time: "Success",
                 icon: "✔️",
                 color: "#10b981",
             }]);
-            alert("IDENTITY ESTABLISHED: Welcome to FocusFlow! We've sent you two emails—one to verify your account and another confirmed your identity has been established.");
+            alert("Identity Established: Welcome to FocusFlow! We've sent you two emails—one to verify your account and another confirmed your identity has been established.");
+            window.location.href = "/dashboard";
         }
         setLoading(false);
         setTimeout(() => setNotifications([]), 5000);
@@ -95,27 +96,27 @@ export default function SignupPage() {
             <main className="flex items-center justify-center pt-56 pb-40 px-12 relative z-10">
                 <ShineBorder borderRadius={0} borderWidth={2} color={["#ef4444", "#f59e0b", "#ef4444"]} duration={8} className="w-full max-w-2xl !bg-zinc-950/80 !backdrop-blur-3xl !border-zinc-900 shadow-2xl p-0">
                     <div className="p-24 space-y-16">
-                        <h1 className="text-6xl font-black text-white uppercase tracking-tightest leading-[1.1]">JOIN THE <br /><span className="text-red-600">PROTOCOL.</span></h1>
-                        <p className="text-xl text-zinc-400 font-bold uppercase tracking-tight max-w-sm">Establish your identity within the FocusFlow ecosystem.</p>
+                        <h1 className="text-3xl font-black text-white leading-[1.1]">Join The <br /><span className="text-red-600">Protocol.</span></h1>
+                        <p className="text-sm text-zinc-400 font-bold max-w-sm">Establish your identity within the FocusFlow ecosystem.</p>
 
                         <form onSubmit={handleSignup} className="space-y-12">
                             <div className="space-y-6">
-                                <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Full Identity Alias</label>
-                                <input required type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="ENTER NAME" className="w-full bg-transparent border-b border-zinc-800 p-6 text-2xl font-black text-white focus:border-red-500 transition-all outline-none rounded-none placeholder:text-zinc-800" />
+                                <label className="text-xs font-black text-zinc-600 pl-1">Full Identity Alias</label>
+                                <input required type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Enter Name" className="w-full bg-transparent border-b border-zinc-800 p-6 text-base font-black text-white focus:border-red-500 transition-all outline-none rounded-none placeholder:text-zinc-800" />
                             </div>
                             <div className="space-y-6">
-                                <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Communication UID</label>
-                                <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ACCESS@PROTO.NET" className="w-full bg-transparent border-b border-zinc-800 p-6 text-2xl font-black text-white focus:border-red-500 transition-all outline-none rounded-none placeholder:text-zinc-800" />
+                                <label className="text-xs font-black text-zinc-600 pl-1">Communication Uid</label>
+                                <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Access@Proto.Net" className="w-full bg-transparent border-b border-zinc-800 p-6 text-base font-black text-white focus:border-red-500 transition-all outline-none rounded-none placeholder:text-zinc-800" />
                             </div>
                             <div className="space-y-6">
-                                <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Secret Key</label>
-                                <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="SECURE KEY" className="w-full bg-transparent border-b border-zinc-800 p-6 text-2xl font-black text-white focus:border-red-500 transition-all outline-none rounded-none placeholder:text-zinc-800" />
+                                <label className="text-xs font-black text-zinc-600 pl-1">Secret Key</label>
+                                <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Secure Key" className="w-full bg-transparent border-b border-zinc-800 p-6 text-base font-black text-white focus:border-red-500 transition-all outline-none rounded-none placeholder:text-zinc-800" />
                             </div>
                             <div className="flex flex-col gap-6 pt-10">
-                                <button type="submit" disabled={loading} className="w-full py-10 bg-red-600 text-white font-black text-3xl hover:bg-orange-700 transition-all active:scale-95 shadow-2xl shadow-red-500/20 uppercase tracking-widest rounded-none border-none disabled:opacity-50">
-                                    {loading ? "INITIALIZING..." : "ESTABLISH IDENTITY"}
+                                <button type="submit" disabled={loading} className="w-full py-10 bg-red-600 text-white font-black text-lg hover:bg-orange-700 transition-all active:scale-95 shadow-2xl shadow-red-500/20 rounded-none border-none disabled:opacity-50">
+                                    {loading ? "Initializing..." : "Establish Identity"}
                                 </button>
-                                <Link href="/login" className="text-center text-xs text-red-600 hover:text-white transition-colors uppercase font-black tracking-widest">ALREADY HAVE ACCESS? SIGN IN</Link>
+                                <Link href="/login" className="text-center text-xs text-red-600 hover:text-white transition-colors font-black">Already Have Access? Sign In</Link>
                             </div>
                         </form>
                     </div>

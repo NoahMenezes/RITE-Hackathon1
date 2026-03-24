@@ -31,19 +31,19 @@ export default function FAQ() {
     return (
         <section id="faq" className="py-60 px-12 max-w-7xl mx-auto bg-transparent relative z-20 mb-80 border-l border-r border-zinc-900/10">
             <div className="text-center mb-40">
-                <h2 className="text-7xl md:text-9xl font-black text-white uppercase tracking-tightest mb-10 italic">INQUIRY <span className="text-white opacity-40">HUB.</span></h2>
+                <h2 className="text-4xl md:text-6xl font-black text-white mb-10 italic">Inquiry <span className="text-white opacity-40">Hub.</span></h2>
                 <div className="w-80 h-2 bg-white mx-auto shadow-2xl" />
-                <p className="mt-12 text-zinc-500 font-black uppercase tracking-widest text-2xl">CLARITY THROUGH INTERROGATION.</p>
+                <p className="mt-12 text-zinc-500 font-black text-base">Clarity Through Interrogation.</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-24">
                 {faqs.map((faq, i) => (
                     <ShineBorder key={i} borderRadius={0} borderWidth={1} color={["#A07CFE", "#FE8FB5", "#FFBE7B"]} duration={12} className="w-full !p-0 !bg-zinc-950/40 !backdrop-blur-3xl !border-zinc-900 group transition-all hover:!bg-zinc-900/60 min-h-[500px]">
                         <div className="p-20 h-full flex flex-col justify-start relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-8 text-white font-black text-6xl opacity-5 group-hover:opacity-10 transition-opacity select-none tracking-tighter uppercase whitespace-nowrap">Q0{i + 1}</div>
+                            <div className="absolute top-0 right-0 p-8 text-white font-black text-3xl opacity-5 group-hover:opacity-10 transition-opacity select-none whitespace-nowrap">Q0{i + 1}</div>
                             <div className="space-y-12 h-full flex flex-col justify-center">
-                                <h3 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter leading-none group-hover:text-white transition-colors border-l-8 border-white pl-8">{faq.question}</h3>
-                                <p className="text-zinc-400 font-bold text-lg md:text-xl leading-relaxed group-hover:text-zinc-200 transition-colors uppercase tracking-tight">{faq.answer}</p>
+                                <h3 className="text-lg md:text-xl font-black text-white leading-none group-hover:text-white transition-colors border-l-8 border-white pl-8">{faq.question}</h3>
+                                <p className="text-zinc-400 font-bold text-sm md:text-sm leading-relaxed group-hover:text-zinc-200 transition-colors">{faq.answer}</p>
                             </div>
                         </div>
                     </ShineBorder>

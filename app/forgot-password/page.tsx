@@ -17,16 +17,16 @@ const Notification = ({ name, description, icon, color, time }: any) => {
             "transition-all duration-300 ease-in-out hover:scale-[103%]",
             "bg-zinc-950/90 backdrop-blur-2xl border border-zinc-800 shadow-2xl flex flex-row items-center gap-6"
         )}>
-            <div className="flex size-12 items-center justify-center shrink-0 border border-zinc-700 font-black text-xl" style={{ backgroundColor: color }}>
+            <div className="flex size-12 items-center justify-center shrink-0 border border-zinc-700 font-black text-sm" style={{ backgroundColor: color }}>
                 <span>{icon}</span>
             </div>
             <div className="flex flex-col overflow-hidden">
-                <figcaption className="flex flex-row items-center text-lg font-black uppercase tracking-widest text-white">
+                <figcaption className="flex flex-row items-center text-sm font-black text-white">
                     <span>{name}</span>
                     <span className="mx-2 opacity-30">·</span>
                     <span className="text-xs text-zinc-500">{time}</span>
                 </figcaption>
-                <p className="text-sm font-bold text-zinc-400 uppercase tracking-tighter">{description}</p>
+                <p className="text-sm font-bold text-zinc-400">{description}</p>
             </div>
         </figure>
     )
@@ -42,23 +42,23 @@ export default function ForgotPasswordPage() {
         e.preventDefault();
         setLoading(true);
 
-        console.log("RECOVERY PROTOCOL INITIATED FOR:", email);
+        console.log("Recovery Protocol Initiated For:", email);
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${window.location.origin}/login`,
         });
 
         if (error) {
-            console.error("RECOVERY TRANSMISSION FAILED:", error.message);
-            setNotifications([{ name: "Transmission Error", description: error.message || "Email UID not recognized.", time: "FAILED", icon: "⚠️", color: "#ef4444" }]);
-            alert("TRANSMISSION ERROR: " + error.message);
+            console.error("Recovery Transmission Failed:", error.message);
+            setNotifications([{ name: "Transmission Error", description: error.message || "Email Uid not recognized.", time: "Failed", icon: "⚠️", color: "#ef4444" }]);
+            alert("Transmission Error: " + error.message);
         } else {
-            console.log("RECOVERY KEY TRANSMITTED.");
+            console.log("Recovery Key Transmitted.");
 
             // Send secondary email via Resend
             await sendAuthNotification(email, "reset");
 
-            setNotifications([{ name: "Key Transmitted", description: "Recovery sequence sent to identity UID.", time: "SUCCESS", icon: "📧", color: "#ef4444" }]);
-            alert("TRANSMIT SUCCESS: Recovery link sent to your email!");
+            setNotifications([{ name: "Key Transmitted", description: "Recovery sequence sent to identity Uid.", time: "Success", icon: "📧", color: "#ef4444" }]);
+            alert("Transmit Success: Recovery link sent to your email!");
         }
         setLoading(false);
         setTimeout(() => setNotifications([]), 5000);
@@ -79,21 +79,21 @@ export default function ForgotPasswordPage() {
             <main className="flex items-center justify-center pt-56 pb-40 px-12 relative z-10">
                 <ShineBorder borderRadius={0} borderWidth={2} color={["#ef4444", "#dc2626", "#ef4444"]} duration={6} className="w-full max-w-2xl !bg-zinc-950/80 !backdrop-blur-3xl !border-zinc-900 shadow-2xl p-0">
                     <div className="p-24 space-y-16">
-                        <h1 className="text-6xl font-black text-white uppercase tracking-tightest leading-[1.1]">RECOVER <br /><span className="text-red-600 uppercase">ACCESS.</span></h1>
-                        <p className="text-xl text-zinc-400 font-bold uppercase tracking-tight max-w-sm">Enter your identity UID to transmit recovery link.</p>
+                        <h1 className="text-3xl font-black text-white leading-[1.1]">Recover <br /><span className="text-red-600">Access.</span></h1>
+                        <p className="text-sm text-zinc-400 font-bold max-w-sm">Enter your identity Uid to transmit recovery link.</p>
 
                         <form onSubmit={handleReset} className="space-y-12">
                             <div className="space-y-6">
-                                <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Identity UID</label>
-                                <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ACCESS@PROTO.NET" className="w-full bg-transparent border-b border-zinc-800 p-6 text-2xl font-black text-white focus:border-red-500 transition-all outline-none rounded-none placeholder:text-zinc-800" />
+                                <label className="text-xs font-black text-zinc-600 pl-1">Identity Uid</label>
+                                <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Access@Proto.Net" className="w-full bg-transparent border-b border-zinc-800 p-6 text-base font-black text-white focus:border-red-500 transition-all outline-none rounded-none placeholder:text-zinc-800" />
                             </div>
 
                             <div className="flex flex-col gap-6 pt-10">
-                                <button type="submit" disabled={loading} className="w-full py-10 bg-red-600 text-white font-black text-3xl hover:bg-zinc-900 transition-all active:scale-95 shadow-2xl shadow-red-500/20 uppercase tracking-widest rounded-none disabled:opacity-50 border-none outline-none">
-                                    {loading ? "TRANSMITTING..." : "TRANSMIT RECOVERY KEY"}
+                                <button type="submit" disabled={loading} className="w-full py-10 bg-red-600 text-white font-black text-lg hover:bg-zinc-900 transition-all active:scale-95 shadow-2xl shadow-red-500/20 rounded-none disabled:opacity-50 border-none outline-none">
+                                    {loading ? "Transmitting..." : "Transmit Recovery Key"}
                                 </button>
-                                <div className="flex items-center justify-center text-xs font-black uppercase tracking-widest">
-                                    <Link href="/login" className="text-zinc-600 hover:text-white transition-colors">RETURN TO LOGIN ACCESS</Link>
+                                <div className="flex items-center justify-center text-xs font-black">
+                                    <Link href="/login" className="text-zinc-600 hover:text-white transition-colors">Return To Login Access</Link>
                                 </div>
                             </div>
                         </form>

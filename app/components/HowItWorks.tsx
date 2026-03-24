@@ -37,9 +37,9 @@ export default function HowItWorks() {
                     viewport={{ once: true }}
                     className="space-y-12 w-full max-w-4xl flex flex-col items-center"
                 >
-                    <h2 className="text-7xl md:text-9xl font-black text-white leading-[1.05] uppercase tracking-tightest drop-shadow-2xl">THE <span className="text-white">PROCESS.</span></h2>
+                    <h2 className="text-4xl md:text-6xl font-black text-white leading-[1.05] drop-shadow-2xl">The <span className="text-white">Process.</span></h2>
                     <div className="w-[80%] h-1 bg-white shadow-2xl shadow-blue-500/50" />
-                    <p className="text-3xl text-zinc-300 font-bold leading-relaxed max-w-2xl tracking-tight uppercase px-8 opacity-80">
+                    <p className="text-lg text-zinc-300 font-bold leading-relaxed max-w-2xl px-8 opacity-80">
                         Systematic deconstruction of workspace architecture. Timeline of flow. Consistent output.
                     </p>
                 </motion.div>
@@ -73,11 +73,11 @@ export default function HowItWorks() {
                                 <div className={`w-full md:w-[70%] flex ${i % 2 === 0 ? 'md:justify-end' : 'md:justify-start'}`}>
                                     <ShineBorder borderRadius={0} borderWidth={1} color={["#ffffff", "#3b82f6", "#ffffff"]} duration={14} className="w-full !p-0 !bg-zinc-950/20 !backdrop-blur-3xl !border-zinc-900 group-hover:bg-zinc-900/40 min-h-[400px]">
                                         <div className="p-20 md:p-24 h-full relative overflow-hidden flex flex-col text-left shadow-[0_50px_100px_-20px_rgba(0,0,0,1)]">
-                                            <div className="absolute top-0 right-0 p-12 text-white font-black text-9xl opacity-5 select-none tracking-widest">{step.number}</div>
+                                            <div className="absolute top-0 right-0 p-12 text-white font-black text-6xl opacity-5 select-none">{step.number}</div>
                                             <div className="relative z-10 space-y-10 group-hover:translate-x-4 transition-transform duration-700">
-                                                <h3 className="text-5xl font-black text-white uppercase tracking-widest leading-none drop-shadow-lg">{step.title}</h3>
+                                                <h3 className="text-2xl font-black text-white leading-none drop-shadow-lg">{step.title}</h3>
                                                 <div className="w-40 h-1 bg-white group-hover:w-full transition-all duration-1000 shadow-[0_0_10px_white]" />
-                                                <p className="text-zinc-400 font-bold text-xl md:text-2xl leading-relaxed uppercase tracking-tighter max-w-lg mb-12">{step.description}</p>
+                                                <p className="text-zinc-400 font-bold text-sm md:text-base leading-relaxed max-w-lg mb-12">{step.description}</p>
                                             </div>
                                         </div>
                                     </ShineBorder>
