@@ -1,10 +1,10 @@
-import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
-import Features from "./components/Features";
-import Testimonials from "./components/Testimonials";
-import FAQ from "./components/FAQ";
-import HowItWorks from "./components/HowItWorks";
-import Footer from "./components/Footer";
+import Navbar from "@/app/components/Navbar";
+import Hero from "@/app/components/Hero";
+import Features from "@/app/components/Features";
+import Testimonials from "@/app/components/Testimonials";
+import FAQ from "@/app/components/FAQ";
+import HowItWorks from "@/app/components/HowItWorks";
+import Footer from "@/app/components/Footer";
 
 export default function Home() {
   return (

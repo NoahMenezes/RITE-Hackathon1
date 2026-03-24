@@ -26,7 +26,7 @@ export default function Testimonials() {
                                     <div className="w-4 h-[2px] bg-blue-500" /> {t.role}
                                 </div>
                             </div>
-                            <p className="text-zinc-300 italic text-xl leading-relaxed font-medium whitespace-normal text-left">"{t.text}"</p>
+                            <p className="text-zinc-300 italic text-xl leading-relaxed font-medium whitespace-normal text-left">&quot;{t.text}&quot;</p>
                             <div className="mt-12 h-1 w-full bg-zinc-800 opacity-20" />
                         </div>
                     ))}

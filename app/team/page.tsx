@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { cn } from "../../lib/utils";
@@ -13,7 +13,15 @@ const team = [
     { name: "Mark Russo", role: "Security Protocol Lead", bio: "Expert in end-to-end homomorphic encryption and privacy-preserving data management systems.", img: "MR" }
 ];
 
-const Notification = ({ name, description, icon, color, time }: any) => {
+interface NotificationProps {
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+    time: string;
+}
+
+const Notification = ({ name, description, icon, color, time }: NotificationProps) => {
     return (
         <figure
             className={cn(
@@ -45,11 +53,11 @@ const Notification = ({ name, description, icon, color, time }: any) => {
 
 export default function TeamPage() {
     const [showNotification, setShowNotification] = useState(false);
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<NotificationProps[]>([]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const newNotif = {
+        const newNotif: NotificationProps = {
             name: "Transmission Success",
             description: "Data pocket received at central hub",
             time: "INSTANT",
