@@ -19,6 +19,7 @@ import remarkGfm from "remark-gfm";
 function parseIntent(text: string): TaskIntent | "unknown" {
   const lower = text.toLowerCase();
   if (lower.startsWith("message on")) return "whatsapp";
+  if (lower.startsWith("email ")) return "email";
   if (
     lower.includes("focus") ||
     lower.includes("start") ||
@@ -53,6 +54,7 @@ type TaskIntent =
   | "quick"
   | "automation"
   | "whatsapp"
+  | "email"
   | "unknown";
 import {
   autoScheduleTask,
@@ -421,6 +423,28 @@ export default function ChatPage() {
     const duration = parseDuration(userText) || 25;
 
     try {
+      if (intent === "email") {
+        const emailAddress = userText.replace(/i?email /i, "").trim();
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `📧 **Email Automation Initiated!**\n\nOpening Gmail to compose an email to **${emailAddress}**...`,
+          },
+        ]);
+
+        try {
+          await fetch("/api/email", {
+            method: "POST",
+            body: JSON.stringify({ email: emailAddress }),
+          });
+        } catch (_) {}
+
+        setIsTyping(false);
+        return;
+      }
+
       if (intent === "whatsapp") {
         const number = userText.replace(/i?message on /i, "").trim();
         setMessages((prev) => [
