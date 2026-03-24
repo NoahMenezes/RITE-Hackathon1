@@ -53,9 +53,7 @@ body {
   overflow-x: hidden;
 }
 
-* {
-  border-radius: 0 !important;
-}
+
 
 @keyframes marquee {
   0% {

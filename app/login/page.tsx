@@ -2,12 +2,13 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import ShineBorder from "../components/ShineBorder";
 import { AnimatedList } from "../components/AnimatedList";
 import { cn } from "../../lib/utils";
 import { sendAuthNotification } from "../actions/auth-emails";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card";
 
 interface NotificationProps {
   name: string;
@@ -27,24 +28,24 @@ const Notification = ({
   return (
     <figure
       className={cn(
-        "relative mx-auto min-h-fit w-full max-w-[400px] cursor-pointer overflow-hidden p-6",
+        "relative mx-auto min-h-fit w-full max-w-[400px] cursor-pointer overflow-hidden rounded-lg p-4",
         "transition-all duration-300 ease-in-out hover:scale-[103%]",
-        "bg-zinc-950/90 backdrop-blur-2xl border border-zinc-800 shadow-2xl flex flex-row items-center gap-6",
+        "bg-background border shadow-lg flex flex-row items-center gap-4",
       )}
     >
       <div
-        className="flex size-12 items-center justify-center shrink-0 border border-zinc-700 font-black text-sm"
+        className="flex size-10 items-center justify-center shrink-0 rounded-full font-bold text-sm text-white"
         style={{ backgroundColor: color }}
       >
         <span>{icon}</span>
       </div>
       <div className="flex flex-col overflow-hidden">
-        <figcaption className="flex flex-row items-center text-sm font-black text-white">
+        <figcaption className="flex flex-row items-center text-sm font-medium text-foreground">
           <span>{name}</span>
-          <span className="mx-2 opacity-30">·</span>
-          <span className="text-xs text-zinc-500">{time}</span>
+          <span className="mx-2 text-muted-foreground">·</span>
+          <span className="text-xs text-muted-foreground">{time}</span>
         </figcaption>
-        <p className="text-sm font-bold text-zinc-400">{description}</p>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
     </figure>
   );
@@ -109,11 +110,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-transparent text-white selection:bg-blue-500/40">
-      <Navbar />
-
+    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
       {notifications.length > 0 && (
-        <div className="fixed top-32 left-1/2 -translate-x-1/2 w-full max-w-[450px] z-[200]">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 w-full max-w-[450px] z-[50]">
           <AnimatedList delay={100}>
             {notifications.map((n, i) => (
               <Notification key={i} {...n} />
@@ -122,80 +121,62 @@ export default function LoginPage() {
         </div>
       )}
 
-      <main className="flex items-center justify-center pt-56 pb-40 px-12 relative z-10">
-        <ShineBorder
-          borderRadius={0}
-          borderWidth={2}
-          color={["#3b82f6", "#8b5cf6", "#3b82f6"]}
-          duration={6}
-          className="w-full max-w-2xl !bg-zinc-950/80 !backdrop-blur-3xl !border-zinc-900 shadow-2xl p-0"
-        >
-          <div className="p-24 space-y-16">
-            <h1 className="text-3xl font-black text-white leading-[1.1]">
-              Access <br />
-              <span className="text-blue-600">Authorized.</span>
-            </h1>
-            <p className="text-sm text-zinc-400 font-bold max-w-sm">
-              Secure identity verification required.
-            </p>
-
-            <form onSubmit={handleLogin} className="space-y-12">
-              <div className="space-y-6">
-                <label className="text-xs font-black text-zinc-600 pl-1">
-                  Identity Uid
-                </label>
-                <input
-                  required
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Access@Proto.Net"
-                  className="w-full bg-transparent border-b border-zinc-800 p-6 text-base font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-800"
-                />
-              </div>
-              <div className="space-y-6">
-                <label className="text-xs font-black text-zinc-600 pl-1">
-                  Secret Key
-                </label>
-                <input
-                  required
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter Secret"
-                  className="w-full bg-transparent border-b border-zinc-800 p-6 text-base font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-800"
-                />
-              </div>
-
-              <div className="flex flex-col gap-6 pt-10">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-10 bg-blue-600 text-white font-black text-lg hover:bg-indigo-700 transition-all active:scale-95 shadow-2xl shadow-blue-500/20 rounded-none disabled:opacity-50"
-                >
-                  {loading ? "Authorizing..." : "Sign In Access"}
-                </button>
-                <div className="flex items-center justify-between text-xs font-black">
-                  <Link
-                    href="/signup"
-                    className="text-zinc-600 hover:text-white transition-colors"
-                  >
-                    New Account Access
-                  </Link>
-                  <Link
-                    href="/forgot-password"
-                    id="forgot-password"
-                    className="text-blue-600 hover:text-white transition-colors"
-                  >
-                    Forgot Secret Key?
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Login to your account</CardTitle>
+            <CardDescription>
+              Enter your email below to login to your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin}>
+              <div className="flex flex-col gap-6">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="m@example.com"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <div className="flex items-center">
+                    <Label htmlFor="password">Password</Label>
+                    <Link
+                      href="/forgot-password"
+                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Logging in..." : "Login"}
+                  </Button>
+                </div>
+                <div className="mt-4 text-center text-sm">
+                  Don&apos;t have an account?{" "}
+                  <Link href="/signup" className="underline underline-offset-4">
+                    Sign up
                   </Link>
                 </div>
               </div>
             </form>
-          </div>
-        </ShineBorder>
-      </main>
-      <Footer />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
