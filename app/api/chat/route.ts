@@ -2,6 +2,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+console.log(
+  "GEMINI_API_KEY loaded:",
+  process.env.GEMINI_API_KEY ? "Yes" : "No",
+);
 
 export async function POST(req: Request) {
   try {
@@ -19,6 +23,7 @@ export async function POST(req: Request) {
     const result = await chat.sendMessage(message);
     const response = await result.response;
     const text = response.text();
+    console.log("Gemini response text:", text);
 
     return NextResponse.json({ text });
   } catch (error: unknown) {
