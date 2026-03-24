@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({
-      user: { id: user.id, email: user.email, name: user.name },
+      user: { id: user.id as number, email: user.email as string, name: user.name as string },
     });
   } catch (error) {
     console.error("Me error:", error);

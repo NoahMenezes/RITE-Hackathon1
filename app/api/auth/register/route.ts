@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await createUser(email, password, name);
-    return NextResponse.json({ user: { id: user.id, email, name } });
+    return NextResponse.json({ user: { id: user.id as number, email, name: name as string } });
   } catch (error) {
     console.error("Register error:", error);
     return NextResponse.json(
