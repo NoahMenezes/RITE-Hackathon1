@@ -18,7 +18,8 @@ def open_whatsapp_chat(
     clean_number = "".join(filter(str.isdigit, phone_number))
 
     # Open WhatsApp Web directly to the chat
-    url = f"https://web.whatsapp.com/send?phone={clean_number}"
+    # Using the universal api.whatsapp.com which correctly redirects to web/desktop
+    url = f"https://api.whatsapp.com/send?phone={clean_number}"
     print(f"Opening WhatsApp for number: {clean_number}")
     webbrowser.open(url)
 
