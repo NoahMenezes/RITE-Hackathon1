@@ -5,14 +5,16 @@ interface Task {
   id: number;
   user_id: number;
   title: string;
-  type: "automated" | "scheduled" | "quick";
+  type: "automated" | "scheduled" | "quick" | "habit";
   status: "pending" | "completed";
-  scheduled_for?: string;
-  duration_mins?: number;
+  scheduled_for: string | null;
+  duration_mins: number | null;
   created_at: string;
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const genAI = process.env.GEMINI_API_KEY
+  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+  : null;
 console.log(
   "GEMINI_API_KEY loaded:",
   process.env.GEMINI_API_KEY ? "Yes" : "No",
@@ -74,6 +76,29 @@ Response Strategy:
 export async function POST(req: Request) {
   try {
     const { message, history, userContext, currentTasks } = await req.json();
+
+    // Check if API key is available
+    if (!genAI) {
+      // Fallback response when no API key
+      let fallbackText =
+        "I'm currently operating in offline mode without AI assistance. ";
+
+      if (
+        message.toLowerCase().includes("schedule") ||
+        message.toLowerCase().includes("task")
+      ) {
+        fallbackText +=
+          "I can help you schedule tasks! Try saying 'Schedule a 25-minute study session' or 'Create a quick task to call mom'.";
+      } else if (message.toLowerCase().includes("focus")) {
+        fallbackText +=
+          "Ready to start focus mode? I can help you begin a focused work session.";
+      } else {
+        fallbackText +=
+          "I understand you're looking for productivity help. I can assist with task scheduling, focus sessions, and time management.";
+      }
+
+      return NextResponse.json({ text: fallbackText });
+    }
 
     // Build enhanced context for the LLM
     let enhancedPrompt = systemPrompt;

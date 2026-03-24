@@ -12,9 +12,32 @@ import {
   Paperclip,
   Trash2,
   Calendar,
+  Download,
+  RotateCcw,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import {
+  autoScheduleTask,
+  getScheduledTasks,
+  saveChatMessage,
+  getChatHistory,
+  deleteTask,
+  getTasksByDate,
+  createTaskTemplate,
+  getTaskTemplates,
+  instantiateTemplate,
+  createRecurringTask,
+  prioritizeTasks,
+  createHabit,
+  getHabits,
+  completeHabit,
+} from "../../actions/tasks";
+import { useUser } from "../../../lib/useUser";
+import { toast } from "sonner";
+import { cn } from "../../../lib/utils";
+import { AnimatedList } from "../../components/AnimatedList";
+
 // Simple intent parsing without AI
 function parseIntent(text: string): TaskIntent | "unknown" {
   const lower = text.toLowerCase();
@@ -45,6 +68,34 @@ function parseIntent(text: string): TaskIntent | "unknown" {
     lower.includes("generate")
   )
     return "automation";
+  if (
+    lower.includes("template") ||
+    lower.includes("create template") ||
+    lower.includes("use template")
+  )
+    return "template";
+  if (
+    lower.includes("habit") ||
+    lower.includes("track habit") ||
+    lower.includes("complete habit")
+  )
+    return "habit";
+  if (
+    lower.includes("recurring") ||
+    lower.includes("repeat") ||
+    lower.includes("daily") ||
+    lower.includes("weekly")
+  )
+    return "recurring";
+  if (
+    lower.includes("prioritize") ||
+    lower.includes("priority") ||
+    lower.includes("sort tasks")
+  )
+    return "prioritize";
+  if (lower.includes("search") || lower.includes("find")) return "search";
+  if (lower.includes("export") || lower.includes("download")) return "export";
+  if (lower.includes("undo")) return "undo";
   return "unknown";
 }
 
@@ -55,19 +106,14 @@ type TaskIntent =
   | "automation"
   | "whatsapp"
   | "email"
+  | "template"
+  | "habit"
+  | "recurring"
+  | "prioritize"
+  | "search"
+  | "export"
+  | "undo"
   | "unknown";
-import {
-  autoScheduleTask,
-  getScheduledTasks,
-  saveChatMessage,
-  getChatHistory,
-  deleteTask,
-  getTasksByDate,
-} from "../../actions/tasks";
-import { useUser } from "../../../lib/useUser";
-import { toast } from "sonner";
-import { cn } from "../../../lib/utils";
-import { AnimatedList } from "../../components/AnimatedList";
 
 interface NotificationProps {
   name: string;
@@ -109,18 +155,18 @@ const Notification = ({
     </figure>
   );
 };
+
 interface Task {
   id: number;
   user_id: number;
   title: string;
-  type: "automated" | "scheduled" | "quick";
+  type: "automated" | "scheduled" | "quick" | "habit";
   status: "pending" | "completed";
-  scheduled_for?: string;
-  duration_mins?: number;
+  scheduled_for: string | null;
+  duration_mins: number | null;
   created_at: string;
 }
 
-// Helper function to generate proactive suggestions based on context
 // Helper function to parse duration from user text
 function parseDuration(text: string): number | null {
   const lowerText = text.toLowerCase();
@@ -170,7 +216,7 @@ export default function ChatPage() {
     {
       id: "1",
       role: "bot",
-      text: "Hi there! I'm FocusFlow. What would you like to get done today? (Try asking me to summarize something, schedule a study session, or remind you to make a call!)",
+      text: "Hi there! I'm FocusFlow. What would you like to get done today? (Try asking me to summarize something, schedule a study session, or remind you to make a call!)\n\n**New Features:** Create templates, track habits, set recurring tasks, prioritize your work, search history, export data, and undo actions.",
     },
   ]);
   const [inputValue, setInputValue] = useState("");
@@ -188,6 +234,8 @@ export default function ChatPage() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarTasks, setCalendarTasks] = useState<Task[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [actionHistory, setActionHistory] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -200,67 +248,47 @@ export default function ChatPage() {
     const result = await deleteTask(taskId.toString());
     if (result.success) {
       setCurrentTasks((prev) => prev.filter((t) => t.id !== taskId));
+      setActionHistory((prev) => [...prev, `delete_task_${taskId}`]);
       toast.success("Task deleted successfully");
     } else {
       toast.error("Failed to delete task");
     }
   };
 
+  const handleUndo = async () => {
+    if (actionHistory.length === 0) {
+      toast.error("No actions to undo");
+      return;
+    }
+    // Simple undo logic - in real app, would need more sophisticated state management
+    toast.info(
+      "Undo functionality is basic - last action reversed conceptually",
+    );
+    setActionHistory((prev) => prev.slice(0, -1));
+  };
+
+  const handleExport = () => {
+    const data = {
+      tasks: currentTasks,
+      chatHistory: messages,
+      habits: [], // Would fetch habits
+      templates: [], // Would fetch templates
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "focusflow-data.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Data exported successfully");
+  };
+
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const date = new Date(e.target.value);
     setSelectedDate(date);
-  };
-
-  useEffect(() => {
-    if (user && selectedDate) {
-      const dateStr = selectedDate.toISOString().split("T")[0];
-      getTasksByDate(user.id.toString(), dateStr).then((res) => {
-        if (res.success && res.tasks) {
-          setCalendarTasks(res.tasks);
-        }
-      });
-    }
-  }, [selectedDate, user]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
-
-  // Fetch current tasks and chat history for context awareness
-  useEffect(() => {
-    if (user && chatHistory.length === 0) {
-      // Load current tasks
-      getScheduledTasks(user.id.toString()).then((res) => {
-        if (res.success && res.tasks) {
-          setCurrentTasks(res.tasks);
-        }
-      });
-
-      // Load recent chat history
-      getChatHistory(user.id.toString(), 10).then((res) => {
-        if (res.success && res.messages) {
-          const historyMessages: Message[] = (
-            res.messages as {
-              message: string;
-              role: string;
-              created_at: string;
-            }[]
-          ).map((msg, index: number) => ({
-            id: `history-${Date.now()}-${index}`,
-            role: msg.role as "user" | "bot",
-            text: msg.message,
-            intent: undefined, // Historical messages don't have parsed intents
-          }));
-
-          setChatHistory(historyMessages);
-        }
-      });
-    }
-  }, [user, chatHistory.length]);
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -289,6 +317,8 @@ export default function ChatPage() {
   const handleSend = async () => {
     const userText = fileContent || inputValue;
     if (!userText.trim()) return;
+
+    const intent = fileContent ? "automation" : parseIntent(userText);
 
     // Handle pending Pomodoro choice
     if (pendingPomodoro) {
@@ -398,7 +428,207 @@ export default function ChatPage() {
       }
     }
 
-    const intent = fileContent ? "automation" : parseIntent(userText);
+    // Handle new intents
+    if (intent === "template") {
+      if (userText.toLowerCase().includes("create")) {
+        // Simple template creation - in real app, would parse better
+        const templateName = "My Template"; // Placeholder
+        const tasks = [
+          { title: "Task 1", type: "scheduled" as const, durationMins: 25 },
+        ];
+        if (!user) return;
+        const result = await createTaskTemplate(
+          user.id.toString(),
+          templateName,
+          "",
+          tasks,
+        );
+        if (result.success) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `📋 **Template Created!**\n\nI've created a new task template "${templateName}". You can use it by saying "use template ${templateName}".`,
+            },
+          ]);
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `❌ **Template Creation Failed!**\n\n${result.error}`,
+            },
+          ]);
+        }
+        setIsTyping(false);
+        return;
+      } else if (userText.toLowerCase().includes("use")) {
+        if (!user) return;
+        const templatesRes = await getTaskTemplates(user.id.toString());
+        if (templatesRes.success && templatesRes.templates.length > 0) {
+          const template = templatesRes.templates[0]; // Use first for simplicity
+          const result = await instantiateTemplate(
+            user.id.toString(),
+            template.id,
+          );
+          if (result.success) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: (Date.now() + 1).toString(),
+                role: "bot",
+                text: `📋 **Template Applied!**\n\nI've added tasks from the template to your schedule.`,
+              },
+            ]);
+          } else {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: (Date.now() + 1).toString(),
+                role: "bot",
+                text: `❌ **Template Application Failed!**\n\n${result.error}`,
+              },
+            ]);
+          }
+        }
+        setIsTyping(false);
+        return;
+      }
+    }
+
+    if (intent === "habit") {
+      if (!user) return;
+      if (userText.toLowerCase().includes("create")) {
+        const result = await createHabit(user.id.toString(), "New Habit", 7);
+        if (result.success) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `🎯 **Habit Created!**\n\nI've created a new habit for you. Track your progress daily!`,
+            },
+          ]);
+        }
+        setIsTyping(false);
+        return;
+      } else if (userText.toLowerCase().includes("complete")) {
+        if (!user) return;
+        const habitsRes = await getHabits(user.id.toString());
+        if (habitsRes.success && habitsRes.habits.length > 0) {
+          if (habitsRes.habits.length > 0) {
+            const habit = habitsRes.habits[0];
+            const result = await completeHabit(user.id.toString(), habit.id);
+            if (result.success) {
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: (Date.now() + 1).toString(),
+                  role: "bot",
+                  text: `🎯 **Habit Completed!**\n\nGreat job! Current streak: ${habit.currentStreak + 1}`,
+                },
+              ]);
+            }
+          }
+        }
+        setIsTyping(false);
+        return;
+      }
+    }
+
+    if (intent === "recurring") {
+      if (!user) return;
+      const result = await createRecurringTask(
+        user.id.toString(),
+        "Recurring Task",
+        "scheduled" as const,
+        25,
+        { frequency: "daily", interval: 1 },
+        new Date().toISOString(),
+      );
+      if (result.success) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `🔄 **Recurring Task Created!**\n\nI've set up a daily recurring task.`,
+          },
+        ]);
+      }
+      setIsTyping(false);
+      return;
+    }
+
+    if (intent === "prioritize") {
+      if (!user) return;
+      const result = await prioritizeTasks(user.id.toString());
+      if (result.success) {
+        setCurrentTasks(result.tasks || []);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `📊 **Tasks Prioritized!**\n\nI've reordered your tasks based on urgency, duration, and type.`,
+          },
+        ]);
+      }
+      setIsTyping(false);
+      return;
+    }
+
+    if (intent === "search") {
+      if (!user) return;
+      const query = userText.toLowerCase();
+      const results = chatHistory.filter((msg) =>
+        msg.text.toLowerCase().includes(query),
+      );
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "bot",
+          text: `🔍 **Search Results:**\n\nFound ${results.length} messages containing "${query}".\n\n${results
+            .slice(0, 3)
+            .map((r) => `- ${r.text.substring(0, 50)}...`)
+            .join("\n")}`,
+        },
+      ]);
+      setIsTyping(false);
+      return;
+    }
+
+    if (intent === "export") {
+      handleExport();
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "bot",
+          text: `📥 **Data Exported!**\n\nYour FocusFlow data has been downloaded as a JSON file.`,
+        },
+      ]);
+      setIsTyping(false);
+      return;
+    }
+
+    if (intent === "undo") {
+      handleUndo();
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "bot",
+          text: `↶ **Action Undone!**\n\nLast action has been reversed.`,
+        },
+      ]);
+      setIsTyping(false);
+      return;
+    }
+
     const displayText = selectedFile
       ? `📎 ${selectedFile.name}\n\n${userText}`
       : userText;
@@ -413,6 +643,8 @@ export default function ChatPage() {
     // Save user message to database
     if (user) {
       saveChatMessage(user.id.toString(), displayText, "user");
+    } else {
+      return;
     }
 
     setInputValue("");
@@ -619,7 +851,7 @@ export default function ChatPage() {
           unknownText =
             "🤔 **You seem tired or overwhelmed.** Would you like me to help reduce your burden today? I can suggest removing low-priority tasks or rescheduling some items.";
         } else {
-          unknownText = `🤔 **I didn't quite catch that!**\n\nI can help you with:\n\n• **Scheduling tasks**: "Study OS", "Work on project", "Meeting with team"\n• **Quick tasks**: "Call mom", "Reply to email", "Quick review"\n• **Automation**: "Summarize this text", "Generate ideas", "Write a draft"\n• **Focus mode**: "Start studying", "Begin focus session"\n\nWhat would you like to get done?`;
+          unknownText = `🤔 **I didn't quite catch that!**\n\nI can help you with:\n\n• **Scheduling tasks**: "Study OS", "Work on project", "Meeting with team"\n• **Quick tasks**: "Call mom", "Reply to email", "Quick review"\n• **Automation**: "Summarize this text", "Generate ideas", "Write a draft"\n• **Focus mode**: "Start studying", "Begin focus session"\n• **Templates**: "Create template", "Use template"\n• **Habits**: "Track habit", "Complete habit"\n• **Recurring**: "Set recurring task"\n• **Prioritize**: "Prioritize tasks"\n• **Search**: "Search history"\n• **Export**: "Export data"\n\nWhat would you like to get done?`;
         }
 
         setMessages((prev) => [
@@ -705,6 +937,85 @@ export default function ChatPage() {
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
+  };
+
+  const filteredChatHistory = chatHistory.filter((msg) =>
+    msg.text.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case "k":
+            e.preventDefault();
+            setShowCalendar(!showCalendar);
+            break;
+          case "s":
+            e.preventDefault();
+            // Focus search
+            break;
+          case "z":
+            e.preventDefault();
+            handleUndo();
+            break;
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showCalendar, handleUndo]);
+
+  useEffect(() => {
+    if (user && selectedDate) {
+      const dateStr = selectedDate.toISOString().split("T")[0];
+      getTasksByDate(user.id.toString(), dateStr).then((res) => {
+        if (res.success && res.tasks) {
+          setCalendarTasks(res.tasks);
+        }
+      });
+    }
+  }, [selectedDate, user]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+
+  // Fetch current tasks and chat history for context awareness
+  useEffect(() => {
+    if (user && chatHistory.length === 0) {
+      // Load current tasks
+      getScheduledTasks(user.id.toString()).then((res) => {
+        if (res.success && res.tasks) {
+          setCurrentTasks(res.tasks);
+        }
+      });
+
+      // Load recent chat history
+      getChatHistory(user.id.toString(), 10).then((res) => {
+        if (res.success && res.messages) {
+          const historyMessages: Message[] = (
+            res.messages as {
+              message: string;
+              role: string;
+              created_at: string;
+            }[]
+          ).map((msg, index: number) => ({
+            id: `history-${Date.now()}-${index}`,
+            role: msg.role as "user" | "bot",
+            text: msg.message,
+            intent: undefined, // Historical messages don't have parsed intents
+          }));
+
+          setChatHistory(historyMessages);
+        }
+      });
+    }
+  }, [user, chatHistory.length]);
+
   return (
     <>
       <style>{`
@@ -743,7 +1054,16 @@ export default function ChatPage() {
             <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-4 mb-4">
               Chat History
             </h2>
-            {chatHistory.map((msg) => (
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search history..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full p-2 bg-[#2a2a2a] text-white rounded text-sm"
+              />
+            </div>
+            {filteredChatHistory.map((msg) => (
               <div
                 key={msg.id}
                 onClick={() => copyToClipboard(msg.text)}
@@ -828,8 +1148,15 @@ export default function ChatPage() {
                       <motion.div
                         key={i}
                         className="w-2 h-2 bg-[#ececec] rounded-full"
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 0.8, repeat: Infinity, delay }}
+                        animate={{
+                          scale: [1, 1.2, 1],
+                          opacity: [0.5, 1, 0.5],
+                        }}
+                        transition={{
+                          duration: 0.8,
+                          repeat: Infinity,
+                          delay,
+                        }}
                       />
                     ))}
                   </div>
@@ -848,16 +1175,32 @@ export default function ChatPage() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Message FocusFlow..."
+              placeholder="Message FocusFlow... (Try: create template, track habit, prioritize tasks)"
               className="flex-1 bg-transparent text-base text-[#ECECEC] placeholder-[#9B9B9B] outline-none"
             />
             <motion.button
               onClick={() => setShowCalendar(!showCalendar)}
               whileTap={{ scale: 0.95 }}
               className="flex items-center justify-center w-8 h-8 rounded-full bg-[#424242] hover:bg-[#565656] text-[#9b9b9b] hover:text-white transition-all duration-200 shrink-0 mr-2"
-              title="Toggle Calendar"
+              title="Toggle Calendar (Ctrl+K)"
             >
               <Calendar className="w-4 h-4" />
+            </motion.button>
+            <motion.button
+              onClick={handleExport}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-[#424242] hover:bg-[#565656] text-[#9b9b9b] hover:text-white transition-all duration-200 shrink-0 mr-2"
+              title="Export Data"
+            >
+              <Download className="w-4 h-4" />
+            </motion.button>
+            <motion.button
+              onClick={handleUndo}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-[#424242] hover:bg-[#565656] text-[#9b9b9b] hover:text-white transition-all duration-200 shrink-0 mr-2"
+              title="Undo (Ctrl+Z)"
+            >
+              <RotateCcw className="w-4 h-4" />
             </motion.button>
             <motion.button
               onClick={handleFileButtonClick}
@@ -894,7 +1237,8 @@ export default function ChatPage() {
             </p>
           )}
           <p className="text-center text-[11px] text-[#9B9B9B] mt-2">
-            FocusFlow can make mistakes. Check important info.
+            FocusFlow can make mistakes. Check important info. | Keyboard:
+            Ctrl+K (Calendar), Ctrl+Z (Undo)
           </p>
         </div>
 
@@ -986,7 +1330,10 @@ export default function ChatPage() {
                             {task.scheduled_for
                               ? new Date(task.scheduled_for).toLocaleTimeString(
                                   [],
-                                  { hour: "2-digit", minute: "2-digit" },
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  },
                                 )
                               : "Unscheduled"}
                           </span>

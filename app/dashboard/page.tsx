@@ -5,7 +5,16 @@ import { useRouter } from "next/navigation";
 import { useUser } from "../../lib/useUser";
 import Footer from "../components/Footer";
 import ShineBorder from "../components/ShineBorder";
-import { getScheduledTasks, getTasks, seedDemoData } from "../actions/tasks";
+import SmartSuggestions from "../components/SmartSuggestions";
+import {
+  getScheduledTasks,
+  getTasks,
+  seedDemoData,
+  getHabits,
+  completeHabit,
+  prioritizeTasks,
+  generateRecurringInstances,
+} from "../actions/tasks";
 import {
   Play,
   TrendingUp,
@@ -13,6 +22,9 @@ import {
   CheckCircle,
   Target,
   Sparkles,
+  Flame,
+  RotateCcw,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { BorderBeam } from "@/components/ui/border-beam";
@@ -21,11 +33,22 @@ interface Task {
   id: number;
   user_id: number;
   title: string;
-  type: "automated" | "scheduled" | "quick";
+  type: "automated" | "scheduled" | "quick" | "habit";
   status: "pending" | "completed";
-  scheduled_for?: string;
-  duration_mins?: number;
+  scheduled_for: string | null;
+  duration_mins: number | null;
   created_at: string;
+}
+
+interface Habit {
+  id: string;
+  userId: string;
+  title: string;
+  targetDays: number;
+  currentStreak: number;
+  longestStreak: number;
+  lastCompleted?: string;
+  createdAt: string;
 }
 
 function AnalyticsCard({
@@ -77,6 +100,7 @@ export default function DashboardPage() {
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [seedingDemo, setSeedingDemo] = useState(false);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
   const [notificationPermission, setNotificationPermission] =
     useState<NotificationPermission>("default");
 
@@ -91,6 +115,11 @@ export default function DashboardPage() {
       // Load all tasks for analytics
       getTasks(user.id.toString()).then((res) => {
         if (res.success && res.tasks) setAllTasks(res.tasks as Task[]);
+      });
+
+      // Load habits
+      getHabits(user.id.toString()).then((res) => {
+        if (res.success && res.habits) setHabits(res.habits);
       });
     }
   }, [user]);
@@ -132,6 +161,21 @@ export default function DashboardPage() {
       });
     };
 
+    // Check for habit reminders
+    habits.forEach((habit) => {
+      const lastCompleted = habit.lastCompleted
+        ? new Date(habit.lastCompleted)
+        : null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (!lastCompleted || lastCompleted < today) {
+        // Habit not completed today - could send reminder
+        // For now, just log it
+        console.log(`Habit reminder: ${habit.title}`);
+      }
+    });
+
     // Check immediately and then every minute
     checkUpcomingTasks();
     const interval = setInterval(checkUpcomingTasks, 60000);
@@ -154,13 +198,57 @@ export default function DashboardPage() {
 
         const allRes = await getTasks(user.id.toString());
         if (allRes.success && allRes.tasks) setAllTasks(allRes.tasks as Task[]);
-      } else {
-        toast.error(`Failed to load demo data: ${result.error}`);
+
+        // Refresh habits
+        const habitsRes = await getHabits(user.id.toString());
+        if (habitsRes.success && habitsRes.habits) setHabits(habitsRes.habits);
       }
     } catch {
       toast.error("Failed to load demo data");
     } finally {
       setSeedingDemo(false);
+    }
+  };
+
+  const handleCompleteHabit = async (habitId: string) => {
+    if (!user) return;
+    const result = await completeHabit(user.id.toString(), habitId);
+    if (result.success) {
+      // Refresh habits
+      const habitsRes = await getHabits(user.id.toString());
+      if (habitsRes.success && habitsRes.habits) setHabits(habitsRes.habits);
+      toast.success("Habit completed! Keep up the streak!");
+    } else {
+      toast.error("Failed to complete habit");
+    }
+  };
+
+  const handlePrioritizeTasks = async () => {
+    if (!user) return;
+    const result = await prioritizeTasks(user.id.toString());
+    if (result.success) {
+      setTasks(result.tasks || []);
+      toast.success("Tasks prioritized successfully!");
+    } else {
+      toast.error("Failed to prioritize tasks");
+    }
+  };
+
+  const handleGenerateRecurring = async () => {
+    if (!user) return;
+    const result = await generateRecurringInstances(user.id.toString());
+    if (result.success) {
+      // Refresh tasks
+      const scheduledRes = await getScheduledTasks(user.id.toString());
+      if (scheduledRes.success && scheduledRes.tasks)
+        setTasks(scheduledRes.tasks);
+
+      const allRes = await getTasks(user.id.toString());
+      if (allRes.success && allRes.tasks) setAllTasks(allRes.tasks as Task[]);
+
+      toast.success(`Generated ${result.generated} recurring task instances!`);
+    } else {
+      toast.error("Failed to generate recurring tasks");
     }
   };
 
@@ -282,6 +370,112 @@ export default function DashboardPage() {
                   value={analytics.completedTasks.toString()}
                   icon={TrendingUp}
                 />
+              </div>
+            </div>
+
+            {/* Habits Section */}
+            {habits.length > 0 && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-black text-white border-l-8 border-orange-600 pl-8">
+                  Habit Tracking
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {habits.map((habit) => (
+                    <div
+                      key={habit.id}
+                      className="relative overflow-hidden p-4 bg-orange-900/20 border border-orange-800 rounded-lg hover:border-orange-500/50 transition-all"
+                    >
+                      <BorderBeam size={100} duration={12} delay={0} />
+                      <div className="flex items-center justify-between mb-2">
+                        <Flame className="w-5 h-5 text-orange-400" />
+                        <span className="text-xs text-green-400 font-medium">
+                          {habit.currentStreak} day streak
+                        </span>
+                      </div>
+                      <div className="text-lg font-black text-white mb-1">
+                        {habit.title}
+                      </div>
+                      <div className="text-xs text-orange-300 font-medium mb-3">
+                        Target: {habit.targetDays} days/week • Best:{" "}
+                        {habit.longestStreak}
+                      </div>
+                      <button
+                        onClick={() => handleCompleteHabit(habit.id)}
+                        className="w-full py-2 bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm transition-all rounded-lg"
+                      >
+                        Mark Complete Today
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Smart Suggestions Section */}
+            <SmartSuggestions
+              onSuggestionClick={(suggestion: {
+                title: string;
+                action: string;
+              }) => {
+                // Handle suggestion clicks - could integrate with chat or direct actions
+                toast.info(`Suggestion: ${suggestion.title}`);
+                if (suggestion.action.includes("focus")) {
+                  router.push("/dashboard/chat");
+                }
+              }}
+              currentTime={new Date()}
+              userPatterns={["study", "exercise"]} // Would be dynamic based on user data
+              recentTasks={allTasks.slice(-3).map((t) => t.title)}
+            />
+
+            {/* Quick Actions Section */}
+            <div className="space-y-6">
+              <h2 className="text-lg font-black text-white border-l-8 border-purple-600 pl-8">
+                Quick Actions
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  onClick={handlePrioritizeTasks}
+                  className="flex items-center gap-3 p-4 bg-purple-900/20 border border-purple-800 rounded-lg hover:border-purple-500/50 transition-all group"
+                >
+                  <Target className="w-6 h-6 text-purple-400 group-hover:text-purple-300" />
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-white">
+                      Smart Prioritize
+                    </div>
+                    <div className="text-xs text-purple-300">
+                      Reorder tasks by urgency
+                    </div>
+                  </div>
+                </button>
+                <button
+                  onClick={handleGenerateRecurring}
+                  className="flex items-center gap-3 p-4 bg-green-900/20 border border-green-800 rounded-lg hover:border-green-500/50 transition-all group"
+                >
+                  <RotateCcw className="w-6 h-6 text-green-400 group-hover:text-green-300" />
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-white">
+                      Generate Recurring
+                    </div>
+                    <div className="text-xs text-green-300">
+                      Create upcoming instances
+                    </div>
+                  </div>
+                </button>
+                <button
+                  onClick={() => router.push("/dashboard/chat")}
+                  className="flex items-center gap-3 p-4 bg-blue-900/20 border border-blue-800 rounded-lg hover:border-blue-500/50 transition-all group"
+                >
+                  <Zap className="w-6 h-6 text-blue-400 group-hover:text-blue-300" />
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-white">
+                      AI Assistant
+                    </div>
+                    <div className="text-xs text-blue-300">
+                      Chat with FocusFlow
+                    </div>
+                  </div>
+                </button>
               </div>
             </div>
 
