@@ -29,16 +29,16 @@ export default function FAQ() {
     ];
 
     return (
-        <section id="faq" className="py-60 px-12 max-w-7xl mx-auto bg-transparent relative z-20 mb-80">
+        <section id="faq" className="py-60 px-12 max-w-7xl mx-auto bg-transparent relative z-20 mb-80 border-l border-r border-zinc-900/10">
             <div className="text-center mb-40">
                 <h2 className="text-7xl md:text-9xl font-black text-white uppercase tracking-tightest mb-10 italic">INQUIRY <span className="text-white opacity-40">HUB.</span></h2>
                 <div className="w-80 h-2 bg-white mx-auto shadow-2xl" />
                 <p className="mt-12 text-zinc-500 font-black uppercase tracking-widest text-2xl">CLARITY THROUGH INTERROGATION.</p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-24">
+            <div className="grid md:grid-cols-2 gap-24">
                 {faqs.map((faq, i) => (
-                    <ShineBorder key={i} borderRadius={0} borderWidth={1} color={["#A07CFE", "#FE8FB5", "#FFBE7B"]} duration={12} className="w-full !p-0 !bg-zinc-950/40 !backdrop-blur-3xl !border-zinc-900 group transition-all hover:!bg-zinc-900/60 min-h-[450px]">
+                    <ShineBorder key={i} borderRadius={0} borderWidth={1} color={["#A07CFE", "#FE8FB5", "#FFBE7B"]} duration={12} className="w-full !p-0 !bg-zinc-950/40 !backdrop-blur-3xl !border-zinc-900 group transition-all hover:!bg-zinc-900/60 min-h-[500px]">
                         <div className="p-20 h-full flex flex-col justify-start relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-8 text-white font-black text-6xl opacity-5 group-hover:opacity-10 transition-opacity select-none tracking-tighter uppercase whitespace-nowrap">Q0{i + 1}</div>
                             <div className="space-y-12 h-full flex flex-col justify-center">

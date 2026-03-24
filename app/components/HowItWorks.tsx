@@ -45,10 +45,16 @@ export default function HowItWorks() {
                 </motion.div>
 
                 <div className="relative w-full mt-60">
-                    {/* Central Line */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-blue-600 via-white to-transparent opacity-20 hidden md:block" />
+                    {/* Central Line with Shine Animation */}
+                    <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[4px] bg-zinc-900 hidden md:block overflow-hidden">
+                        <div className="w-full h-full bg-gradient-to-b from-blue-600/20 via-white/5 to-transparent" />
+                        <motion.div
+                            animate={{ y: ["-100%", "200%"] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-transparent via-blue-500 to-transparent blur-sm"
+                        />
+                    </div>
 
-                    {/* Vertical spacing increased within the cards area */}
                     <div className="space-y-80 relative">
                         {steps.map((step, i) => (
                             <motion.div
@@ -61,23 +67,23 @@ export default function HowItWorks() {
                             >
 
                                 {/* Node for the line */}
-                                <div className="absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-2 border-black z-30 hidden md:block shadow-[0_0_20px_white]" />
+                                <div className="absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-4 border-blue-600 z-30 hidden md:block shadow-[0_0_30px_#2563eb]" />
 
-                                {/* Card Container Target for left/right */}
+                                {/* Card Container */}
                                 <div className={`w-full md:w-[70%] flex ${i % 2 === 0 ? 'md:justify-end' : 'md:justify-start'}`}>
                                     <ShineBorder borderRadius={0} borderWidth={1} color={["#ffffff", "#3b82f6", "#ffffff"]} duration={14} className="w-full !p-0 !bg-zinc-950/20 !backdrop-blur-3xl !border-zinc-900 group-hover:bg-zinc-900/40 min-h-[400px]">
                                         <div className="p-20 md:p-24 h-full relative overflow-hidden flex flex-col text-left shadow-[0_50px_100px_-20px_rgba(0,0,0,1)]">
                                             <div className="absolute top-0 right-0 p-12 text-white font-black text-9xl opacity-5 select-none tracking-widest">{step.number}</div>
                                             <div className="relative z-10 space-y-10 group-hover:translate-x-4 transition-transform duration-700">
                                                 <h3 className="text-5xl font-black text-white uppercase tracking-widest leading-none drop-shadow-lg">{step.title}</h3>
-                                                <div className="w-40 h-1 bg-white group-hover:w-full transition-all duration-1000" />
+                                                <div className="w-40 h-1 bg-white group-hover:w-full transition-all duration-1000 shadow-[0_0_10px_white]" />
                                                 <p className="text-zinc-400 font-bold text-xl md:text-2xl leading-relaxed uppercase tracking-tighter max-w-lg mb-12">{step.description}</p>
                                             </div>
                                         </div>
                                     </ShineBorder>
                                 </div>
 
-                                {/* Empty space for the other side */}
+                                {/* Empty space placeholder */}
                                 <div className="hidden md:block w-[30%]" />
                             </motion.div>
                         ))}

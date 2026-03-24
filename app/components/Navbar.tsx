@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "../../lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { User } from "lucide-react";
 
 export default function Navbar() {
     const supabase = createClient();
@@ -17,8 +18,9 @@ export default function Navbar() {
         };
         fetchUser();
 
-        // Listen for auth changes
+        // Listen for auth changes to update state immediately
         const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log("AUTH STATE CHANGE:", event);
             setUser(session?.user || null);
         });
 
@@ -39,8 +41,11 @@ export default function Navbar() {
                 <Link href="/team" className="text-zinc-400 hover:text-white transition-colors border-b-2 border-transparent hover:border-blue-600 pb-1">Team</Link>
 
                 {user ? (
-                    <Link href="/dashboard" className="px-8 py-3 rounded-none bg-blue-600 text-white font-black hover:bg-indigo-700 transition-all active:scale-95 shadow-2xl shadow-blue-500/20 uppercase tracking-widest">
-                        Account
+                    <Link href="/dashboard" className="flex items-center gap-4 px-8 py-3 rounded-none bg-blue-600 text-white font-black hover:bg-indigo-700 transition-all active:scale-95 shadow-2xl shadow-blue-500/20 uppercase tracking-widest">
+                        <User className="w-5 h-5" />
+                        <span className="hidden md:inline overflow-hidden text-ellipsis whitespace-nowrap max-w-[150px]">
+                            {user.user_metadata?.full_name || "Profile"}
+                        </span>
                     </Link>
                 ) : (
                     <>
