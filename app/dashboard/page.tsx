@@ -8,16 +8,26 @@ import ShineBorder from "../components/ShineBorder";
 import { getScheduledTasks } from "../actions/tasks";
 import { Play } from "lucide-react";
 
+interface Task {
+  id: number;
+  user_id: number;
+  title: string;
+  type: "automated" | "scheduled" | "quick";
+  status: "pending" | "completed";
+  scheduled_for?: string;
+  duration_mins?: number;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading } = useUser();
-  const [tasks, setTasks] = useState<Record<string, any>[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
 
   useEffect(() => {
     if (user) {
       getScheduledTasks(user.id.toString()).then((res) => {
-        if (res.success && res.tasks) setTasks(res.tasks);
+        if (res.success && res.tasks) setTasks(res.tasks as unknown as Task[]);
         setLoadingTasks(false);
       });
     }
