@@ -9,22 +9,6 @@ import { getScheduledTasks, seedDemoData } from "../actions/tasks";
 import { Play, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
-function TaskSkeleton() {
-  return (
-    <div className="relative p-6 border border-zinc-800 bg-zinc-900/50 flex flex-col md:flex-row md:justify-between md:items-center gap-4 animate-pulse">
-      <div className="absolute w-3 h-3 bg-zinc-700 rounded-full -left-[39px] top-1/2 -translate-y-1/2 ring-4 ring-zinc-950" />
-      <div className="flex-1">
-        <div className="h-4 bg-zinc-700 rounded mb-2 w-3/4"></div>
-        <div className="h-3 bg-zinc-700 rounded w-1/2"></div>
-      </div>
-      <div className="flex items-center gap-4 self-start md:self-auto">
-        <div className="h-6 bg-zinc-700 rounded w-16"></div>
-        <div className="w-8 h-8 bg-zinc-700 rounded-full"></div>
-      </div>
-    </div>
-  );
-}
-
 interface Task {
   id: number;
   user_id: number;
@@ -35,6 +19,20 @@ interface Task {
   duration_mins?: number;
   created_at: string;
 }
+
+const TaskSkeleton = () => (
+  <div className="relative p-6 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col md:flex-row md:justify-between md:items-center gap-4 animate-pulse">
+    <div className="absolute w-4 h-4 bg-zinc-950 border-2 border-zinc-700 rounded-full -left-[41px] top-1/2 -translate-y-1/2" />
+    <div className="flex-1">
+      <div className="h-5 bg-white/10 rounded-md mb-3 w-3/4"></div>
+      <div className="h-4 bg-white/5 rounded-md w-1/2"></div>
+    </div>
+    <div className="flex items-center gap-4">
+      <div className="h-8 bg-white/10 rounded-md w-20"></div>
+      <div className="w-10 h-10 bg-white/10 rounded-full"></div>
+    </div>
+  </div>
+);
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -89,59 +87,66 @@ export default function DashboardPage() {
   return (
     <div className="relative min-h-screen bg-transparent text-white selection:bg-blue-500/40">
       <main className="flex flex-col items-center justify-center pb-40 px-12 relative z-10 w-full min-h-screen">
-        <div className="text-center mb-24 max-w-4xl w-full">
-          <h1 className="text-3xl md:text-5xl font-black text-white leading-[1.1]">
+        <div className="text-center mb-20 max-w-4xl w-full mt-12">
+          <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-500 tracking-tight leading-tight mb-6">
             Main <br />
-            <span className="text-blue-600">Dashboard.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-400">
+              Dashboard.
+            </span>
           </h1>
-          <div className="w-64 h-2 bg-white mx-auto my-12 shadow-2xl shadow-blue-500/50" />
-          <p className="text-sm text-zinc-400 font-bold">
+          <div className="w-24 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto my-8 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+          <p className="text-sm text-zinc-400 font-medium">
             Access Granted. Identity: {user.name || user.email}
           </p>
         </div>
 
         <ShineBorder
-          borderRadius={0}
-          borderWidth={2}
-          color={["#10b981", "#3b82f6", "#10b981"]}
+          borderRadius={24}
+          borderWidth={1.5}
+          color={["#3b82f6", "#6366f1", "#8b5cf6"]}
           duration={10}
-          className="w-full max-w-4xl bg-zinc-950/80! backdrop-blur-3xl! border-zinc-900! shadow-2xl p-0"
+          className="w-full max-w-4xl bg-zinc-950/60 backdrop-blur-2xl border-white/10 shadow-2xl shadow-blue-900/20 p-0 overflow-hidden"
         >
-          <div className="p-12 md:p-24 space-y-12 w-full">
-            <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8">
-              Daily Plan
-            </h2>
+          <div className="p-8 md:p-16 space-y-10 w-full">
+            <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+              <div className="w-1.5 h-8 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full" />
+              <h2 className="text-2xl md:text-3xl font-bold text-white tracking-wide">
+                Daily Plan
+              </h2>
+            </div>
 
             <div className="flex flex-col gap-6 w-full">
               {loadingTasks ? (
-                <div className="relative border-l-2 border-zinc-800 ml-4 pl-8 space-y-6">
+                <div className="relative border-l-2 border-zinc-800 ml-6 pl-8 space-y-6">
                   {[...Array(3)].map((_, i) => (
                     <TaskSkeleton key={i} />
                   ))}
                 </div>
               ) : tasks.length === 0 ? (
-                <p className="text-zinc-500 font-bold">
-                  No tasks scheduled for today. Ask TaskPilot to schedule
-                  something!
-                </p>
+                <div className="p-8 rounded-2xl border border-white/5 bg-white/[0.02] text-center">
+                  <p className="text-zinc-400 font-medium">
+                    No tasks scheduled for today. Ask FocusFlow to schedule
+                    something!
+                  </p>
+                </div>
               ) : (
-                <div className="relative border-l-2 border-zinc-800 ml-4 pl-8 space-y-6">
+                <div className="relative border-l-2 border-white/10 ml-6 pl-8 space-y-6">
                   {tasks.map((task) => (
                     <div
                       key={task.id}
-                      className="relative p-6 border border-zinc-800 bg-zinc-900/50 flex flex-col md:flex-row md:justify-between md:items-center gap-4 transition-all hover:border-blue-500/50 group"
+                      className="relative p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] flex flex-col md:flex-row md:justify-between md:items-center gap-4 transition-all duration-300 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 group backdrop-blur-sm"
                     >
-                      <div className="absolute w-3 h-3 bg-blue-500 rounded-full -left-[39px] top-1/2 -translate-y-1/2 ring-4 ring-zinc-950" />
+                      <div className="absolute w-4 h-4 bg-zinc-950 border-2 border-blue-500 rounded-full -left-[41px] top-1/2 -translate-y-1/2 group-hover:bg-blue-500 transition-colors duration-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                       <div>
-                        <h3 className="text-md font-black text-white mb-2">
+                        <h3 className="text-lg font-bold text-zinc-100 mb-2 group-hover:text-white transition-colors">
                           {task.title}
                         </h3>
-                        <p className="text-zinc-400 text-sm font-bold flex items-center gap-2">
-                          <span className="text-blue-500">
+                        <p className="text-zinc-400 text-sm font-medium flex items-center gap-2">
+                          <span className="text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md">
                             {task.duration_mins} mins
                           </span>
-                          •
-                          <span>
+                          <span className="text-zinc-600">•</span>
+                          <span className="text-zinc-300">
                             {task.scheduled_for
                               ? new Date(task.scheduled_for).toLocaleTimeString(
                                   [],
@@ -151,9 +156,9 @@ export default function DashboardPage() {
                           </span>
                         </p>
                       </div>
-                      <div className="flex items-center gap-4 self-start md:self-auto">
+                      <div className="flex items-center gap-4 self-start md:self-auto mt-2 md:mt-0">
                         <div
-                          className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded ${task.status === "completed" ? "bg-green-600/20 text-green-500" : "bg-blue-600/20 text-blue-500"}`}
+                          className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border ${task.status === "completed" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}
                         >
                           {task.status}
                         </div>
@@ -164,7 +169,7 @@ export default function DashboardPage() {
                                 `/dashboard/focus?taskId=${task.id}&title=${encodeURIComponent(task.title)}`,
                               )
                             }
-                            className="flex items-center justify-center p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all active:scale-95 opacity-100 md:opacity-0 group-hover:opacity-100"
+                            className="flex items-center justify-center p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-blue-500/25 md:opacity-0 group-hover:opacity-100 focus:opacity-100 outline-none ring-2 ring-transparent focus:ring-blue-400"
                             title="Start Focus Mode"
                           >
                             <Play className="w-4 h-4 ml-0.5" />
@@ -176,17 +181,17 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-            <div className="flex gap-4 mt-8">
+            <div className="flex flex-col sm:flex-row gap-4 mt-12 pt-6 border-t border-white/5">
               <button
                 onClick={handleSeedDemo}
                 disabled={seedingDemo}
-                className="flex-1 p-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 border border-purple-500/50 text-white font-black text-sm transition-all shadow-lg hover:shadow-purple-500/20 rounded-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 py-4 px-6 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-sm transition-all rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:border-purple-500/30 group"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4 text-purple-400 group-hover:text-purple-300 transition-colors" />
                 {seedingDemo ? "Loading Demo..." : "Load Demo Data"}
               </button>
               <button
-                className="flex-1 p-4 bg-zinc-900 hover:bg-blue-600 border border-zinc-800 hover:border-blue-500 text-white font-black text-sm transition-all shadow-lg hover:shadow-blue-500/20 rounded-none"
+                className="flex-1 py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 border border-blue-500/50 text-white font-bold text-sm transition-all shadow-lg shadow-blue-500/20 rounded-xl flex items-center justify-center gap-2"
                 onClick={() => router.push("/dashboard/chat")}
               >
                 Launch FocusFlow Chat
