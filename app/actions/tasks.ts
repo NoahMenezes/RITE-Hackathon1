@@ -12,7 +12,7 @@ export async function getTasks(userId: string) {
       sql: "SELECT * FROM tasks WHERE user_id = ? ORDER BY scheduled_for ASC",
       args: [userId],
     });
-    return { success: true, tasks: result.rows };
+    return { success: true, tasks: JSON.parse(JSON.stringify(result.rows)) };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Failed to fetch tasks:", error);
@@ -26,7 +26,7 @@ export async function getScheduledTasks(userId: string) {
       sql: "SELECT * FROM tasks WHERE user_id = ? AND type = 'scheduled' ORDER BY scheduled_for ASC",
       args: [userId],
     });
-    return { success: true, tasks: result.rows };
+    return { success: true, tasks: JSON.parse(JSON.stringify(result.rows)) };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Failed to fetch scheduled tasks:", error);
