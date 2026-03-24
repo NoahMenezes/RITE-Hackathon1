@@ -42,11 +42,8 @@ export default function Navbar() {
             </Link>
 
             <div className="flex items-center gap-10 text-xs font-black">
-                <Link href="/" className="text-zinc-400 hover:text-white transition-colors border-b-2 border-transparent hover:border-blue-600 pb-1">Home</Link>
-
                 {user ? (
                     <>
-                        <Link href="/dashboard" className="text-zinc-400 hover:text-white transition-colors border-b-2 border-transparent hover:border-blue-600 pb-1">Dashboard</Link>
                         <Link href="/profile" className="flex items-center gap-2 px-6 py-3 rounded-none bg-blue-600 text-white font-black hover:bg-indigo-700 transition-all active:scale-95 shadow-2xl shadow-blue-500/20">
                             <User className="w-4 h-4" />
                             <span className="hidden md:inline overflow-hidden text-ellipsis whitespace-nowrap max-w-[150px]">
@@ -60,6 +57,7 @@ export default function Navbar() {
                     </>
                 ) : (
                     <>
+                        <Link href="/" className="text-zinc-400 hover:text-white transition-colors border-b-2 border-transparent hover:border-blue-600 pb-1">Home</Link>
                         <Link href="/login" className="text-zinc-400 hover:text-white transition-colors border-b-2 border-transparent hover:border-blue-600 pb-1">Login</Link>
                         <Link href="/signup" className="px-8 py-3 rounded-none bg-blue-600 text-white font-black hover:bg-indigo-700 transition-all active:scale-95 shadow-2xl shadow-blue-500/20">Sign Up</Link>
                     </>
