@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useUser } from "../../lib/useUser";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -50,7 +49,6 @@ const Notification = ({
 };
 
 export default function ProfilePage() {
-  const router = useRouter();
   const { user, loading } = useUser();
   const [updating, setUpdating] = useState(false);
   const [notifications, setNotifications] = useState<NotificationProps[]>([]);
@@ -67,19 +65,19 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-transparent text-white flex items-center justify-center font-black text-base">
-        Initializing Protocol...
-      </div>
-    );
-  }
-
   React.useEffect(() => {
     if (!loading && !user) {
       window.location.href = "/login";
     }
   }, [user, loading]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-transparent text-white flex items-center justify-center font-black text-base">
+        Initializing Secure Protocol...
+      </div>
+    );
+  }
 
   if (!user) {
     return (
