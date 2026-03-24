@@ -29,7 +29,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-transparent relative overflow-x-hidden">
         <video
-          className="fixed top-0 left-0 w-full h-full object-cover -z-50 pointer-events-none brightness-[0.4] contrast-125"
+          className="fixed top-0 left-0 w-full h-full object-cover -z-50 pointer-events-none brightness-[1.0] contrast-100"
           autoPlay
           loop
           muted
@@ -38,7 +38,7 @@ export default function RootLayout({
           <source src="/video.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        <div className="fixed inset-0 bg-black/50 -z-40 pointer-events-none" />
+        <div className="fixed inset-0 bg-black/10 -z-40 pointer-events-none" />
         {children}
       </body>
     </html>
