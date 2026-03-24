@@ -3,10 +3,41 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, User, Copy, Check } from "lucide-react";
+import { Send, Bot, User, Copy, Check, Play, Paperclip } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { parseIntent, TaskIntent } from "../../../lib/parser";
+// Simple intent parsing without AI
+function parseIntent(text: string): TaskIntent | "unknown" {
+  const lower = text.toLowerCase();
+  if (
+    lower.includes("focus") ||
+    lower.includes("start") ||
+    lower.includes("begin")
+  )
+    return "focus";
+  if (
+    lower.includes("schedule") ||
+    lower.includes("plan") ||
+    lower.includes("set")
+  )
+    return "scheduled";
+  if (
+    lower.includes("quick") ||
+    lower.includes("fast") ||
+    lower.includes("short")
+  )
+    return "quick";
+  if (
+    lower.includes("summarize") ||
+    lower.includes("analyze") ||
+    lower.includes("write") ||
+    lower.includes("generate")
+  )
+    return "automation";
+  return "unknown";
+}
+
+type TaskIntent = "focus" | "scheduled" | "quick" | "automation" | "unknown";
 import {
   autoScheduleTask,
   getScheduledTasks,
@@ -70,7 +101,21 @@ interface Task {
 }
 
 // Helper function to generate proactive suggestions based on context
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Helper function to parse duration from user text
+function parseDuration(text: string): number | null {
+  const lowerText = text.toLowerCase();
+  const hourMatch = lowerText.match(/(\d+)\s*(?:hour|hr|h)/);
+  const minMatch = lowerText.match(/(\d+)\s*(?:minute|min|m)/);
+
+  if (hourMatch) {
+    return parseInt(hourMatch[1]) * 60;
+  } else if (minMatch) {
+    return parseInt(minMatch[1]);
+  }
+
+  // Default to 25 if no duration found
+  return null;
+}
 function getProactiveSuggestions(currentTasks: Task[]): string[] {
   const now = new Date();
   const hour = now.getHours();
@@ -134,7 +179,15 @@ export default function ChatPage() {
   const [quickTaskBuffer, setQuickTaskBuffer] = useState<string[]>([]);
   const [currentTasks, setCurrentTasks] = useState<Task[]>([]);
   const [notifications, setNotifications] = useState<NotificationProps[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileContent, setFileContent] = useState<string>("");
+  const [chatHistory, setChatHistory] = useState<Message[]>([]);
+  const [pendingPomodoro, setPendingPomodoro] = useState<{
+    title: string;
+    duration: number;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -146,7 +199,7 @@ export default function ChatPage() {
 
   // Fetch current tasks and chat history for context awareness
   useEffect(() => {
-    if (user) {
+    if (user && chatHistory.length === 0) {
       // Load current tasks
       getScheduledTasks(user.id.toString()).then((res) => {
         if (res.success && res.tasks) {
@@ -164,17 +217,17 @@ export default function ChatPage() {
               created_at: string;
             }[]
           ).map((msg, index: number) => ({
-            id: `history-${index}`,
+            id: `history-${Date.now()}-${index}`,
             role: msg.role as "user" | "bot",
             text: msg.message,
             intent: undefined, // Historical messages don't have parsed intents
           }));
 
-          setMessages((prev) => [...historyMessages, ...prev]);
+          setChatHistory(historyMessages);
         }
       });
     }
-  }, [user]);
+  }, [user, chatHistory.length]);
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -183,29 +236,182 @@ export default function ChatPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSelectedFile(file);
+
+    if (file.type === "text/plain") {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        setFileContent(text);
+        toast.success("Text file loaded successfully");
+      };
+      reader.readAsText(file);
+    } else {
+      toast.error("Unsupported file type. Please upload .txt files only.");
+    }
+  };
+
+  const handleFileButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleSend = async () => {
-    if (!inputValue.trim()) return;
-    const userText = inputValue;
-    const intent = await parseIntent(userText);
+    const userText = fileContent || inputValue;
+    if (!userText.trim()) return;
+
+    // Handle pending Pomodoro choice
+    if (pendingPomodoro) {
+      const lowerText = userText.toLowerCase();
+      if (lowerText.includes("yes") || lowerText.includes("pomodoro")) {
+        // Use Pomodoro
+        const result = await autoScheduleTask(
+          user.id.toString(),
+          pendingPomodoro.title,
+          25,
+        );
+        if (!result.success) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `❌ **Pomodoro Scheduling Failed!**\n\nI couldn't schedule this Pomodoro session: ${result.error || "Unknown error"}. Please try again later.`,
+            },
+          ]);
+          setIsTyping(false);
+          toast.error("Failed to schedule Pomodoro session!");
+          return;
+        }
+        const scheduledTime = new Date(result.scheduledFor!);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `🍅 **Pomodoro Session Scheduled!**\n\nI've scheduled a 25-minute Pomodoro session for "${pendingPomodoro.title}" at **${scheduledTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}**.\n\nIt has been added to your Daily Plan.`,
+          },
+        ]);
+        setNotifications([
+          {
+            name: "Pomodoro Session Scheduled",
+            description: `25 min at ${scheduledTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+            icon: "🍅",
+            color: "#ef4444",
+            time: "Just now",
+          },
+        ]);
+        toast.success("Pomodoro session scheduled!");
+        setTimeout(() => setNotifications([]), 5000);
+        setPendingPomodoro(null);
+        setIsTyping(false);
+        return;
+      } else if (lowerText.includes("no") || lowerText.includes("full")) {
+        // Use full duration
+        const result = await autoScheduleTask(
+          user.id.toString(),
+          pendingPomodoro.title,
+          pendingPomodoro.duration,
+        );
+        if (!result.success) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `❌ **Scheduling Failed!**\n\nI couldn't schedule this task: ${result.error || "Unknown error"}. Please try again later.`,
+            },
+          ]);
+          setIsTyping(false);
+          toast.error("Failed to schedule task!");
+          return;
+        }
+        const scheduledTime = new Date(result.scheduledFor!);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `📅 **Task Scheduled!**\n\nI've scheduled a ${pendingPomodoro.duration}-minute session for "${pendingPomodoro.title}" at **${scheduledTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}**.\n\nIt has been added to your Daily Plan.`,
+          },
+        ]);
+        setNotifications([
+          {
+            name: "Task Scheduled",
+            description: `${pendingPomodoro.duration} min at ${scheduledTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+            icon: "📅",
+            color: "#10b981",
+            time: "Just now",
+          },
+        ]);
+        toast.success("Task scheduled!");
+        setTimeout(() => setNotifications([]), 5000);
+        setPendingPomodoro(null);
+        setIsTyping(false);
+        return;
+      } else {
+        // Ask again
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `🤔 **Please reply with "yes" for Pomodoro (25 min sessions) or "no" for the full ${pendingPomodoro.duration} minutes.**`,
+          },
+        ]);
+        setIsTyping(false);
+        return;
+      }
+    }
+
+    const intent = fileContent ? "automation" : parseIntent(userText);
+    const displayText = selectedFile
+      ? `📎 ${selectedFile.name}\n\n${userText}`
+      : userText;
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      text: userText,
+      text: displayText,
       intent,
     };
     setMessages((prev) => [...prev, userMessage]);
 
     // Save user message to database
     if (user) {
-      saveChatMessage(user.id.toString(), userText, "user");
+      saveChatMessage(user.id.toString(), displayText, "user");
     }
 
     setInputValue("");
+    setSelectedFile(null);
+    setFileContent("");
     setIsTyping(true);
+
+    const duration = parseDuration(userText) || 25;
 
     try {
       if (intent === "focus" && user) {
-        const result = await autoScheduleTask(user.id.toString(), userText, 25);
+        if (duration > 60) {
+          setPendingPomodoro({ title: userText, duration });
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `⏰ **Long Task Detected!**\n\nThis task is ${duration} minutes long (over 1 hour). Would you like to use the Pomodoro technique (25-minute focused sessions) or schedule the full time?\n\nReply "yes" for Pomodoro or "no" for full duration.`,
+            },
+          ]);
+          setIsTyping(false);
+          return;
+        }
+
+        const result = await autoScheduleTask(
+          user.id.toString(),
+          userText,
+          duration,
+        );
         if (!result.success) {
           setMessages((prev) => [
             ...prev,
@@ -222,7 +428,7 @@ export default function ChatPage() {
         const focusMsg: Message = {
           id: (Date.now() + 1).toString(),
           role: "bot",
-          text: `🚀 **Focus Mode Initiated!**\n\nI've scheduled a 25-minute focus session for "${userText}" and transitioning you to the deep focus environment now...`,
+          text: `🚀 **Focus Mode Initiated!**\n\nI've scheduled a ${duration}-minute focus session for "${userText}" and transitioning you to the deep focus environment now...`,
         };
         setMessages((prev) => [...prev, focusMsg]);
 
@@ -243,7 +449,25 @@ export default function ChatPage() {
       }
 
       if (intent === "scheduled" && user) {
-        const result = await autoScheduleTask(user.id.toString(), userText, 25);
+        if (duration > 60) {
+          setPendingPomodoro({ title: userText, duration });
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `⏰ **Long Task Detected!**\n\nThis task is ${duration} minutes long (over 1 hour). Would you like to use the Pomodoro technique (25-minute focused sessions) or schedule the full time?\n\nReply "yes" for Pomodoro or "no" for full duration.`,
+            },
+          ]);
+          setIsTyping(false);
+          return;
+        }
+
+        const result = await autoScheduleTask(
+          user.id.toString(),
+          userText,
+          duration,
+        );
         if (!result.success) {
           setMessages((prev) => [
             ...prev,
@@ -263,7 +487,7 @@ export default function ChatPage() {
           {
             id: (Date.now() + 1).toString(),
             role: "bot",
-            text: `📅 **Task Scheduled!**\n\nI've scheduled a 25-minute Pomodoro session for this task at **${scheduledTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}**.\n\nIt has been added to your Daily Plan.`,
+            text: `📅 **Task Scheduled!**\n\nI've scheduled a ${duration}-minute session for this task at **${scheduledTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}**.\n\nIt has been added to your Daily Plan.`,
           },
         ]);
         setIsTyping(false);
@@ -326,7 +550,7 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: userText,
-          history: messages.slice(1).map((m) => ({
+          history: [...chatHistory, ...messages.slice(1)].map((m) => ({
             role: m.role === "bot" ? "model" : "user",
             parts: [{ text: m.text }],
           })),
@@ -413,11 +637,29 @@ export default function ChatPage() {
       )}
 
       {/* Full-viewport wrapper with background */}
-      <div className="chat-root relative w-full h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-[#212121]">
-        {/* Main chat container — full width */}
-        <div className="relative z-10 flex flex-col w-full h-full max-w-4xl mx-auto">
+      <div className="chat-root relative w-full h-auto flex overflow-hidden bg-[#212121]">
+        {/* Chat History Sidebar */}
+        <div className="w-64 bg-[#2f2f2f] border-r border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
+          <div className="p-4">
+            <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8 mb-4">
+              Chat History
+            </h2>
+            {chatHistory.map((msg) => (
+              <div
+                key={msg.id}
+                className="mb-2 p-2 bg-[#1f1f1f] rounded text-sm text-zinc-300 hover:bg-[#2a2a2a] transition-colors cursor-pointer"
+              >
+                {msg.role === "user" ? "You: " : "Bot: "}
+                {msg.text.substring(0, 50)}
+                {msg.text.length > 50 ? "..." : ""}
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Chat area */}
+        <div className="relative z-10 flex-1 flex flex-col">
           {/* ── Messages Area ── */}
-          <div className="flex-1 overflow-y-auto scrollbar-custom px-4 py-8 space-y-6">
+          <div className="flex-1 overflow-y-auto scrollbar-custom px-4 py-8 space-y-6 pb-24">
             <AnimatePresence initial={false}>
               {messages.map((msg) => (
                 <motion.div
@@ -425,7 +667,7 @@ export default function ChatPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
-                  className={`flex gap-4 px-4 py-2 w-full max-w-3xl mx-auto ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                  className={`flex gap-4 px-4 py-2 w-full ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
                 >
                   {msg.role === "bot" ? (
                     <div className="w-8 h-8 rounded-full bg-[#10a37f] flex items-center justify-center shrink-0 mt-1">
@@ -462,11 +704,7 @@ export default function ChatPage() {
                         className="absolute -bottom-8 left-0 p-1.5 opacity-0 group-hover:opacity-100 transition-all text-[#ececec] hover:text-white"
                         title="Copy to clipboard"
                       >
-                        {copiedId === msg.id ? (
-                          <Check className="w-4 h-4" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
+                        <Copy className="w-4 h-4" />
                       </button>
                     )}
                   </div>
@@ -477,7 +715,7 @@ export default function ChatPage() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-4 px-4 py-2 w-full max-w-3xl mx-auto flex-row"
+                  className="flex gap-4 px-4 py-2 w-full flex-row"
                 >
                   <div className="w-8 h-8 rounded-full bg-[#10a37f] flex items-center justify-center shrink-0 mt-1">
                     <Bot className="w-5 h-5 text-white" />
@@ -497,35 +735,120 @@ export default function ChatPage() {
             </AnimatePresence>
             <div ref={messagesEndRef} className="h-4" />
           </div>
+        </div>
 
-          {/* ── Input Area ── */}
-          <div className="px-4 py-4 w-full max-w-3xl mx-auto">
-            <div className="relative flex items-center gap-3 bg-[#2f2f2f] border border-[#424242] rounded-3xl px-4 py-3 shadow-sm focus-within:bg-[#383838]">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Message FocusFlow..."
-                className="flex-1 bg-transparent text-base text-[#ECECEC] placeholder-[#9B9B9B] outline-none"
-              />
-              <motion.button
-                onClick={handleSend}
-                disabled={!inputValue.trim() || isTyping}
-                whileTap={{ scale: 0.95 }}
-                className={cn(
-                  "flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 shrink-0",
-                  inputValue.trim() && !isTyping
-                    ? "bg-white text-black hover:bg-[#d9d9d9]"
-                    : "bg-[#424242] text-[#9b9b9b] cursor-not-allowed",
-                )}
-              >
-                <Send className="w-4 h-4 ml-0.5" />
-              </motion.button>
-            </div>
-            <p className="text-center text-[11px] text-[#9B9B9B] mt-2">
-              FocusFlow can make mistakes. Check important info.
+        {/* ── Input Area ── */}
+        <div className="fixed bottom-0 left-64 right-80 z-10 px-4 py-4 bg-[#212121] border-t border-[#424242]">
+          <div className="relative flex items-center gap-3 bg-[#2f2f2f] border border-[#424242] rounded-3xl px-4 py-3 shadow-sm focus-within:bg-[#383838]">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Message FocusFlow..."
+              className="flex-1 bg-transparent text-base text-[#ECECEC] placeholder-[#9B9B9B] outline-none"
+            />
+            <motion.button
+              onClick={handleFileButtonClick}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-[#424242] hover:bg-[#565656] text-[#9b9b9b] hover:text-white transition-all duration-200 shrink-0 mr-2"
+              title="Upload file"
+            >
+              <Paperclip className="w-4 h-4" />
+            </motion.button>
+            <motion.button
+              onClick={handleSend}
+              disabled={(!inputValue.trim() && !fileContent.trim()) || isTyping}
+              whileTap={{ scale: 0.95 }}
+              className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 shrink-0",
+                (inputValue.trim() || fileContent.trim()) && !isTyping
+                  ? "bg-white text-black hover:bg-[#d9d9d9]"
+                  : "bg-[#424242] text-[#9b9b9b] cursor-not-allowed",
+              )}
+            >
+              <Send className="w-4 h-4 ml-0.5" />
+            </motion.button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept=".txt"
+              style={{ display: "none" }}
+            />
+          </div>
+          {selectedFile && (
+            <p className="text-center text-[11px] text-blue-400 mt-2">
+              File attached: {selectedFile.name}
             </p>
+          )}
+          <p className="text-center text-[11px] text-[#9B9B9B] mt-2">
+            FocusFlow can make mistakes. Check important info.
+          </p>
+        </div>
+
+        {/* Daily Plan Sidebar */}
+        <div className="w-80 bg-[#2f2f2f] border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
+          <div className="p-4">
+            <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8 mb-4">
+              Daily Plan
+            </h2>
+            {currentTasks.length === 0 ? (
+              <p className="text-zinc-400 text-sm">
+                No tasks scheduled for today. Ask FocusFlow to schedule
+                something!
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {currentTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="relative p-4 rounded-lg border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 group"
+                  >
+                    <div className="absolute w-3 h-3 bg-zinc-700 rounded-full -left-[17px] top-1/2 -translate-y-1/2 ring-4 ring-zinc-950 group-hover:bg-blue-500 transition-colors duration-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                    <div>
+                      <h3 className="text-lg font-bold text-zinc-100 mb-2 group-hover:text-white transition-colors">
+                        {task.title}
+                      </h3>
+                      <p className="text-zinc-400 text-sm font-medium flex items-center gap-2">
+                        <span className="text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md">
+                          {task.duration_mins} mins
+                        </span>
+                        <span className="text-zinc-600">•</span>
+                        <span className="text-zinc-300">
+                          {task.scheduled_for
+                            ? new Date(task.scheduled_for).toLocaleTimeString(
+                                [],
+                                { hour: "2-digit", minute: "2-digit" },
+                              )
+                            : "Unscheduled"}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4 self-start md:self-auto mt-2 md:mt-0">
+                      <div
+                        className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border ${task.status === "completed" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}
+                      >
+                        {task.status}
+                      </div>
+                      {task.status !== "completed" && (
+                        <button
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/focus?taskId=${task.id}&title=${encodeURIComponent(task.title)}`,
+                            )
+                          }
+                          className="flex items-center justify-center p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-blue-500/25"
+                          title="Start Focus Mode"
+                        >
+                          <Play className="w-4 h-4 ml-0.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

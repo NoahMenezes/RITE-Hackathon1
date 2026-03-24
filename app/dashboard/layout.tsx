@@ -9,9 +9,7 @@ export default function DashboardLayout({
   return (
     <div className="relative flex flex-col min-h-screen w-full">
       <Navbar />
-      <div className="flex-1 pt-32 w-full">
-        {children}
-      </div>
+      <div className="flex-1 pt-32 w-full">{children}</div>
     </div>
   );
 }
