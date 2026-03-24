@@ -34,12 +34,12 @@ export async function updateSession(request: NextRequest) {
     // Protect Dashboard and Profile Routes
     if (!user && (request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/profile'))) {
         const url = request.nextUrl.clone()
-        url.pathname = '/login'
+        url.pathname = '/'
         return NextResponse.redirect(url)
     }
 
     // Redirect signed-in users away from auth pages
-    if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup' || request.nextUrl.pathname === '/')) {
+    if (request.method === 'GET' && user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
         const url = request.nextUrl.clone()
         url.pathname = '/dashboard'
         return NextResponse.redirect(url)

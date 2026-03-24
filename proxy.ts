@@ -5,7 +5,6 @@ export async function proxy(request: NextRequest) {
     return await updateSession(request)
 }
 
-// Added default export to satisfy Next.js proxy resolution
 export default proxy
 
 export const config = {
