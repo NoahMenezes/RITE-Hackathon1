@@ -1,11 +1,15 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Bot, User, Copy, Check, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { parseIntent, TaskIntent } from "../../../lib/parser";
+import { autoScheduleTask } from "../../actions/tasks";
+import { useUser } from "../../../lib/useUser";
+import { toast } from "sonner";
 
 type Message = {
   id: string;
@@ -16,6 +20,8 @@ type Message = {
 };
 
 export default function ChatPage() {
+  const router = useRouter();
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -40,6 +46,7 @@ export default function ChatPage() {
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
+    toast.success("Copied to clipboard");
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -60,6 +67,70 @@ export default function ChatPage() {
     setIsTyping(true);
 
     try {
+      // 4.3 "Start from Chat" Feature
+      if (intent === "focus" && user) {
+        const result = await autoScheduleTask(user.id.toString(), userText, 25);
+
+        if (!result.success) {
+          const errorMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `❌ **Focus Mode Failed!**\n\nI couldn't schedule this focus session: ${result.error || "Unknown error"}. Please try again later.`,
+          };
+          setMessages((prev) => [...prev, errorMsg]);
+          setIsTyping(false);
+          toast.error("Failed to start focus mode!");
+          return;
+        }
+
+        const focusMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "bot",
+          text: `🚀 **Focus Mode Initiated!**\n\nI've scheduled a 25-minute focus session for "${userText}" and transitioning you to the deep focus environment now...`,
+        };
+        setMessages((prev) => [...prev, focusMsg]);
+        setIsTyping(false);
+
+        toast.loading("Initiating Focus Sequence...", { duration: 1500 });
+
+        setTimeout(() => {
+          router.push(
+            `/dashboard/focus?taskId=${result.id}&title=${encodeURIComponent(userText)}`,
+          );
+        }, 1500);
+        return;
+      }
+
+      // 3.2 Auto-Scheduling Logic
+      if (intent === "scheduled" && user) {
+        const result = await autoScheduleTask(user.id.toString(), userText, 25);
+
+        if (!result.success) {
+          const errorMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `❌ **Scheduling Failed!**\n\nI couldn't schedule this task: ${result.error || "Unknown error"}. Please try again later.`,
+          };
+          setMessages((prev) => [...prev, errorMsg]);
+          setIsTyping(false);
+          toast.error("Failed to schedule task!");
+          return;
+        }
+
+        const scheduledTime = new Date(result.scheduledFor!);
+
+        const scheduledMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "bot",
+          text: `📅 **Task Scheduled!**\n\nI've scheduled a 25-minute Pomodoro session for this task at **${scheduledTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}**.\n\nIt has been added to your Daily Plan.`,
+        };
+
+        setMessages((prev) => [...prev, scheduledMsg]);
+        setIsTyping(false);
+        toast.success("Task scheduled and added to Daily Plan!");
+        return;
+      }
+
       // 2.3 Quick Task Burst Logic
       if (intent === "quick") {
         const newBuffer = [...quickTaskBuffer, userText];
@@ -75,7 +146,10 @@ export default function ChatPage() {
           setMessages((prev) => [...prev, burstMsg]);
           setQuickTaskBuffer([]);
           setIsTyping(false);
+          toast.success("Quick Burst grouped successfully!");
           return;
+        } else {
+          toast.info(`Quick task added to buffer (${newBuffer.length}/3)`);
         }
       }
 
@@ -110,6 +184,7 @@ export default function ChatPage() {
         text: "Sorry, I encountered an error processing that request. Please try again.",
       };
       setMessages((prev) => [...prev, errorMessage]);
+      toast.error("Failed to process request");
     } finally {
       setIsTyping(false);
     }
