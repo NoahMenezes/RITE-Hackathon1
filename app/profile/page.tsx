@@ -75,9 +75,18 @@ export default function ProfilePage() {
     );
   }
 
+  React.useEffect(() => {
+    if (!loading && !user) {
+      window.location.href = "/login";
+    }
+  }, [user, loading]);
+
   if (!user) {
-    router.push("/login");
-    return null;
+    return (
+      <div className="min-h-screen bg-transparent text-white flex items-center justify-center font-black text-base">
+        Redirecting to login...
+      </div>
+    );
   }
 
   const handleUpdateProfile = async (e: React.FormEvent) => {

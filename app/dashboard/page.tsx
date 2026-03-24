@@ -73,9 +73,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login");
+      window.location.href = "/login";
     }
-  }, [user, loading, router]);
+  }, [user, loading]);
 
   if (loading) {
     return (
@@ -86,7 +86,11 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen bg-transparent text-white flex items-center justify-center font-black text-base">
+        Redirecting to login...
+      </div>
+    );
   }
 
   return (
