@@ -67,7 +67,7 @@ const Notification = ({
   return (
     <figure
       className={cn(
-        "relative mx-auto min-h-fit w-full max-w-[400px] cursor-pointer overflow-hidden rounded-2xl p-5",
+        "relative mx-auto min-h-fit w-full max-w-100 cursor-pointer overflow-hidden rounded-2xl p-5",
         "transition-all duration-300 ease-in-out hover:scale-[103%]",
         "bg-[#0d0d14]/95 backdrop-blur-2xl border border-white/10 shadow-2xl flex flex-row items-center gap-5",
       )}
@@ -629,7 +629,7 @@ export default function ChatPage() {
       `}</style>
 
       {notifications.length > 0 && (
-        <div className="fixed top-24 right-6 w-full max-w-[400px] z-[200]">
+        <div className="fixed top-24 right-6 w-full max-w-100 z-200">
           <AnimatedList delay={100}>
             {notifications.map((n, i) => (
               <Notification key={i} {...n} />
@@ -806,9 +806,9 @@ export default function ChatPage() {
                 {currentTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="relative p-4 rounded-lg border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 group"
+                    className="relative p-4 rounded-lg border border-white/5 bg-white/2 hover:bg-white/4 transition-all duration-300 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 group"
                   >
-                    <div className="absolute w-3 h-3 bg-zinc-700 rounded-full -left-[17px] top-1/2 -translate-y-1/2 ring-4 ring-zinc-950 group-hover:bg-blue-500 transition-colors duration-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                    <div className="absolute w-3 h-3 bg-zinc-700 rounded-full -left-4.25 top-1/2 -translate-y-1/2 ring-4 ring-zinc-950 group-hover:bg-blue-500 transition-colors duration-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                     <div>
                       <h3 className="text-lg font-bold text-zinc-100 mb-2 group-hover:text-white transition-colors">
                         {task.title}
