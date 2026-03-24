@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { cn } from "../../lib/utils";
 import { AnimatedList } from "../components/AnimatedList";
+import ShineBorder from "../components/ShineBorder";
 
 const team = [
     { name: "Elias Vance", role: "Founding Engineer", bio: "Former Principal Architect at Google and OpenAI, Elias handles the core neural logic architecture and distributed execution protocols.", img: "EV" },
@@ -93,50 +94,54 @@ export default function TeamPage() {
                     <div className="w-80 h-3 bg-white mx-auto shadow-2xl shadow-blue-500/50" />
                 </section>
 
-                <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border border-zinc-800">
+                <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {team.map((member, i) => (
-                        <div key={i} className="p-16 bg-zinc-950/60 backdrop-blur-3xl border border-zinc-900 group transition-all hover:bg-zinc-900/80 flex flex-col justify-between aspect-square relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-6 text-zinc-900 font-black text-6xl opacity-10 group-hover:opacity-30 transition-opacity uppercase tracking-widest pointer-events-none select-none">P0{i + 1}</div>
-                            <div>
-                                <div className="w-20 h-20 bg-zinc-900 border border-zinc-800 flex items-center justify-center font-black text-3xl text-blue-600 mb-8 group-hover:bg-blue-600 group-hover:text-white transition-all transform group-hover:scale-105 duration-500">{member.img}</div>
-                                <h2 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter group-hover:text-blue-500 transition-colors">{member.name}</h2>
-                                <div className="text-xs text-zinc-500 uppercase tracking-widest font-black mb-10 italic border-l-2 border-blue-600 pl-4">{member.role}</div>
-                                <p className="text-zinc-400 font-medium text-lg leading-relaxed group-hover:text-zinc-100 transition-colors uppercase tracking-tight">{member.bio}</p>
+                        <ShineBorder key={i} borderRadius={0} borderWidth={1} color={["#3b82f6", "#1e40af", "#3b82f6"]} duration={6} className="w-full !p-0 !bg-zinc-950/60 !backdrop-blur-3xl !border-zinc-900 group transition-all hover:!bg-zinc-900/80 aspect-square">
+                            <div className="p-16 h-full flex flex-col justify-between relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-6 text-zinc-900 font-black text-6xl opacity-10 group-hover:opacity-30 transition-opacity uppercase tracking-widest pointer-events-none select-none">P0{i + 1}</div>
+                                <div>
+                                    <div className="w-20 h-20 bg-zinc-900 border border-zinc-800 flex items-center justify-center font-black text-3xl text-blue-600 mb-8 group-hover:bg-blue-600 group-hover:text-white transition-all transform group-hover:scale-105 duration-500">{member.img}</div>
+                                    <h2 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter group-hover:text-blue-500 transition-colors">{member.name}</h2>
+                                    <div className="text-xs text-zinc-500 uppercase tracking-widest font-black mb-10 italic border-l-2 border-blue-600 pl-4">{member.role}</div>
+                                    <p className="text-zinc-400 font-medium text-lg leading-relaxed group-hover:text-zinc-100 transition-colors uppercase tracking-tight">{member.bio}</p>
+                                </div>
+                                <div className="mt-12 h-1 w-full bg-blue-600 opacity-20 group-hover:opacity-100 transition-all duration-700" />
                             </div>
-                            <div className="mt-12 h-1 w-full bg-blue-600 opacity-20 group-hover:opacity-100 transition-all duration-700" />
-                        </div>
+                        </ShineBorder>
                     ))}
                 </section>
 
-                <section id="contact" className="w-full max-w-4xl mx-auto bg-zinc-950/60 backdrop-blur-3xl border border-zinc-800 shadow-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[150px] pointer-events-none" />
-                    <div className="p-24 space-y-16">
-                        <h2 className="text-6xl font-black text-white uppercase tracking-tightest text-center italic">CONTACT <span className="text-blue-600">HUB.</span></h2>
+                <section id="contact" className="w-full max-w-4xl mx-auto relative group">
+                    <ShineBorder borderRadius={0} borderWidth={2} color={["#3b82f6", "#A07CFE", "#3b82f6"]} duration={10} className="w-full !p-0 !bg-zinc-950/60 !backdrop-blur-3xl !border-zinc-800 shadow-2xl">
+                        <div className="p-24 space-y-16 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[150px] pointer-events-none" />
+                            <h2 className="text-6xl font-black text-white uppercase tracking-tightest text-center italic">CONTACT <span className="text-blue-600">HUB.</span></h2>
 
-                        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                            <div className="space-y-6">
-                                <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Full Identity</label>
-                                <input required type="text" placeholder="ENTER NAME" className="w-full bg-transparent border-b border-zinc-800 p-6 text-xl font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-900" />
-                            </div>
-                            <div className="space-y-6">
-                                <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Communication Channel</label>
-                                <input required type="email" placeholder="ACCESS@PROTO.NET" className="w-full bg-transparent border-b border-zinc-800 p-6 text-xl font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-900" />
-                            </div>
-                            <div className="space-y-6">
-                                <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Transmission Subject</label>
-                                <input required type="text" placeholder="SUBJECT LEVEL 01" className="w-full bg-transparent border-b border-zinc-800 p-6 text-xl font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-900" />
-                            </div>
-                            <div className="space-y-6">
-                                <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Access Location (Country/Region)</label>
-                                <input required type="text" placeholder="GLOBAL SECTOR" className="w-full bg-transparent border-b border-zinc-800 p-6 text-xl font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-900" />
-                            </div>
-                            <div className="space-y-6 md:col-span-2">
-                                <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Detailed Inquiry Segment</label>
-                                <textarea required placeholder="BEGIN TRANSMISSION..." rows={4} className="w-full bg-transparent border-b border-zinc-800 p-6 text-xl font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-900 resize-none"></textarea>
-                            </div>
-                            <button type="submit" className="md:col-span-2 w-full py-10 bg-blue-600 text-white font-black text-3xl hover:bg-indigo-700 transition-all active:scale-95 shadow-2xl shadow-blue-500/20 uppercase tracking-widest rounded-none border-none outline-none">TRANSMIT PACKET</button>
-                        </form>
-                    </div>
+                            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div className="space-y-6">
+                                    <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Full Identity</label>
+                                    <input required type="text" placeholder="ENTER NAME" className="w-full bg-transparent border-b border-zinc-800 p-6 text-xl font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-900" />
+                                </div>
+                                <div className="space-y-6">
+                                    <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Communication Channel</label>
+                                    <input required type="email" placeholder="ACCESS@PROTO.NET" className="w-full bg-transparent border-b border-zinc-800 p-6 text-xl font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-900" />
+                                </div>
+                                <div className="space-y-6">
+                                    <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Transmission Subject</label>
+                                    <input required type="text" placeholder="SUBJECT LEVEL 01" className="w-full bg-transparent border-b border-zinc-800 p-6 text-xl font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-900" />
+                                </div>
+                                <div className="space-y-6">
+                                    <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Access Location</label>
+                                    <input required type="text" placeholder="GLOBAL SECTOR" className="w-full bg-transparent border-b border-zinc-800 p-6 text-xl font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-900" />
+                                </div>
+                                <div className="space-y-6 md:col-span-2">
+                                    <label className="text-xs font-black text-zinc-600 uppercase tracking-widest pl-1">Detailed Inquiry Segment</label>
+                                    <textarea required placeholder="BEGIN TRANSMISSION..." rows={4} className="w-full bg-transparent border-b border-zinc-800 p-6 text-xl font-black text-white focus:border-blue-500 transition-all outline-none rounded-none placeholder:text-zinc-900 resize-none"></textarea>
+                                </div>
+                                <button type="submit" className="md:col-span-2 w-full py-10 bg-blue-600 text-white font-black text-3xl hover:bg-indigo-700 transition-all active:scale-95 shadow-2xl shadow-blue-500/20 uppercase tracking-widest rounded-none border-none outline-none">TRANSMIT PACKET</button>
+                            </form>
+                        </div>
+                    </ShineBorder>
                 </section>
             </main>
 
