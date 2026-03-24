@@ -315,7 +315,7 @@ export default function ChatPage() {
   };
 
   const handleSend = async () => {
-    const userText = fileContent || inputValue;
+    let userText = fileContent || inputValue;
     if (!userText.trim()) return;
 
     const intent = fileContent ? "automation" : parseIntent(userText);
@@ -348,14 +348,14 @@ export default function ChatPage() {
           return;
         }
         const scheduledTime = new Date(result.scheduledFor!);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "bot",
-            text: `🍅 **Pomodoro Session Scheduled!**\n\nI've scheduled a 25-minute Pomodoro session for "${pendingPomodoro.title}" at **${scheduledTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}**.\n\nIt has been added to your Daily Plan.`,
-          },
-        ]);
+
+
+
+
+
+
+
+
         setNotifications([
           {
             name: "Pomodoro Session Scheduled",
@@ -368,8 +368,8 @@ export default function ChatPage() {
         toast.success("Pomodoro session scheduled!");
         setTimeout(() => setNotifications([]), 5000);
         setPendingPomodoro(null);
-        setIsTyping(false);
-        return;
+
+        userText = `Schedule "${pendingPomodoro.title}" using Pomodoro technique (25 min).`; // Let it fall through to generate Gcal link
       } else if (lowerText.includes("no") || lowerText.includes("full")) {
         // Use full duration
         const result = await autoScheduleTask(
@@ -411,8 +411,8 @@ export default function ChatPage() {
         toast.success("Task scheduled!");
         setTimeout(() => setNotifications([]), 5000);
         setPendingPomodoro(null);
-        setIsTyping(false);
-        return;
+
+        userText = `Schedule "${pendingPomodoro.title}" for ${pendingPomodoro.duration} minutes.`; // Let it fall through to generate Gcal link
       } else {
         // Ask again
         setMessages((prev) => [
@@ -867,15 +867,6 @@ export default function ChatPage() {
           return;
         }
         const scheduledTime = new Date(result.scheduledFor!);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "bot",
-            text: `📅 **Task Scheduled!**\n\nI've scheduled a ${duration}-minute session for this task at **${scheduledTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}**.\n\nIt has been added to your Daily Plan.`,
-          },
-        ]);
-        setIsTyping(false);
         setNotifications([
           {
             name: "Task Scheduled Successfully",
@@ -887,7 +878,7 @@ export default function ChatPage() {
         ]);
         toast.success("Task scheduled and added to Daily Plan!");
         setTimeout(() => setNotifications([]), 5000);
-        return;
+        // Let it fall through to generate Gcal link!
       }
 
       if (intent === "quick") {
