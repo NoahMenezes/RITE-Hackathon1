@@ -34,6 +34,7 @@ export async function POST(req: Request) {
     // Using python3, which is standard on most Linux/Mac systems
     const { stdout, stderr } = await execPromise(
       `python3 ${scriptPath} ${cleanNumber}`,
+      { env: process.env },
     );
 
     console.log("WhatsApp automation output:", stdout);
