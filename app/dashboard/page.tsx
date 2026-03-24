@@ -224,22 +224,22 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <main className="flex flex-col items-center justify-start pt-32 pb-20 px-12 relative z-10 w-full min-h-screen">
-        <div className="text-center mb-16 max-w-6xl w-full">
-          <h1 className="text-5xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-500 tracking-tight leading-tight mb-6">
+      <main className="flex flex-col items-center justify-start pt-32 pb-20 px-6 lg:px-12 relative z-10 w-full max-w-[1400px] mx-auto min-h-screen">
+        <div className="flex flex-col items-center justify-center text-center mb-16 w-full">
+          <h1 className="text-5xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-500 tracking-tight leading-tight mb-6 text-center">
             Main <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-400">
               Dashboard.
             </span>
           </h1>
           <div className="w-32 h-2 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto my-8 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
-          <p className="text-sm text-zinc-400 font-medium">
+          <p className="text-sm text-zinc-400 font-medium text-center">
             Access Granted. Identity: {user.name || user.email}
           </p>
         </div>
 
         {/* Stats Section */}
-        <div className="w-[95vw] max-w-[1400px] relative left-1/2 -translate-x-1/2 px-[2vw] lg:px-[5vw] mb-20">
+        <div className="w-full mb-20">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <StatCard key={index} stat={stat} />
@@ -247,7 +247,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="w-[95vw] max-w-[1400px] relative left-1/2 -translate-x-1/2 px-[2vw] lg:px-[5vw] space-y-24">
+        <div className="w-full space-y-24">
           {/* Daily Plan Section */}
           <div className="space-y-8">
             <div className="flex items-center gap-6 border-b border-white/10 pb-8">
