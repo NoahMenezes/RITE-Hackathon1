@@ -36,22 +36,6 @@ interface Task {
   created_at: string;
 }
 
-function TaskSkeleton() {
-  return (
-    <div className="relative p-6 border border-zinc-800 bg-zinc-900/50 flex flex-col md:flex-row md:justify-between md:items-center gap-4 animate-pulse">
-      <div className="absolute w-3 h-3 bg-zinc-700 rounded-full -left-[39px] top-1/2 -translate-y-1/2 ring-4 ring-zinc-950" />
-      <div className="flex-1">
-        <div className="h-4 bg-zinc-700 rounded mb-2 w-3/4"></div>
-        <div className="h-3 bg-zinc-700 rounded w-1/2"></div>
-      </div>
-      <div className="flex items-center gap-4 self-start md:self-auto">
-        <div className="h-6 bg-zinc-700 rounded w-16"></div>
-        <div className="w-8 h-8 bg-zinc-700 rounded-full"></div>
-      </div>
-    </div>
-  );
-}
-
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading } = useUser();
@@ -82,7 +66,7 @@ export default function DashboardPage() {
       } else {
         toast.error(`Failed to load demo data: ${result.error}`);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load demo data");
     } finally {
       setSeedingDemo(false);
