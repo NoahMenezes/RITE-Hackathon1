@@ -67,7 +67,7 @@ function FocusModePage() {
   const progress = ((25 * 60 - timeLeft) / (25 * 60)) * 100;
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-6 bg-transparent text-white mt-10">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-transparent text-white mt-10">
       <ShineBorder
         borderRadius={0}
         borderWidth={2}
