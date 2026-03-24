@@ -34,8 +34,11 @@ Your core capabilities include:
 - **Proactive Assistance**: Anticipate user needs based on patterns. Suggest optimizations like "You usually study for 45 minutes - should I schedule that?" or "It's 2pm, time for your daily review?"
 - **Smart Duration Estimation**: Automatically estimate task durations based on type and user history. Parse complex time expressions like "tomorrow at 3pm for 1.5 hours".
 - **Automation Execution**: Instantly perform tasks like text summarization, content generation, or quick actions within the chat.
+- **WhatsApp/Email Automation**: If a user wants to send a WhatsApp message or Email and doesn't specify the content, politely ask them what they would like to include using rich markdown formatting. If they DO provide the content, you MUST generate a clickable markdown link for them to send it instantly. NEVER cut off your sentences.
+  - For WhatsApp: "[Send WhatsApp Message](https://wa.me/PHONENUMBER?text=URL_ENCODED_MESSAGE)" (ensure phone number has no '+' or spaces).
+  - For Email: "[Send Email](mailto:EMAIL_ADDRESS?subject=URL_ENCODED_SUBJECT&body=URL_ENCODED_BODY)"
 - **Smart Calendar Scheduling**: When a user asks to schedule an event, block time, or create a study session, you MUST generate a direct Google Calendar event link using this format in your markdown response: "[Add to Google Calendar](https://calendar.google.com/calendar/render?action=TEMPLATE&text=URL_ENCODED_TITLE&dates=YYYYMMDDTHHmmssZ/YYYYMMDDTHHmmssZ&details=URL_ENCODED_DETAILS)". Calculate the correct start and end dates (in UTC) based on their request and current time. Ensure the link is prominent.
-- **User-Friendly Responses**: Always respond helpfully, confirm actions, and suggest next steps. Use markdown for formatting when appropriate.
+- **User-Friendly Responses**: Always respond helpfully, confirm actions, and suggest next steps. Liberally use emojis and rich markdown formatting (like bold text, italics, blockquotes, and lists) to make the conversation visually engaging and structured.
 
 Advanced Guidelines:
 - **Natural Language Understanding**: Parse complex requests like "Schedule a meeting with John tomorrow at 3pm and remind me to prepare the agenda 30 minutes before"
@@ -123,12 +126,38 @@ ${currentTasks
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-flash-latest",
       systemInstruction: enhancedPrompt,
     });
 
+    // Ensure history strictly follows user/model alternation for Gemini
+    const sanitizedHistory: any[] = [];
+    let lastRole = null;
+    
+    for (const msg of history || []) {
+      if (msg && (msg.role === "user" || msg.role === "model") && msg.parts?.[0]?.text) {
+        if (msg.role !== lastRole) {
+          sanitizedHistory.push({ role: msg.role, parts: [{ text: msg.parts[0].text }] });
+          lastRole = msg.role;
+        } else if (sanitizedHistory.length > 0) {
+          // Collapse adjacent messages of the same role
+          sanitizedHistory[sanitizedHistory.length - 1].parts[0].text += "\n\n" + msg.parts[0].text;
+        }
+      }
+    }
+    
+    // Gemini history must start with 'user'
+    while (sanitizedHistory.length > 0 && sanitizedHistory[0].role !== "user") {
+      sanitizedHistory.shift();
+    }
+    
+    // Gemini history must end with 'model' before the next 'user' message is sent
+    if (sanitizedHistory.length > 0 && sanitizedHistory[sanitizedHistory.length - 1].role === "user") {
+      sanitizedHistory.pop();
+    }
+
     const chat = model.startChat({
-      history: history || [],
+      history: sanitizedHistory,
       generationConfig: {
         maxOutputTokens: 1200,
       },
