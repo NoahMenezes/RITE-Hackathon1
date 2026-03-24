@@ -191,8 +191,6 @@ export default function ChatPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileContent, setFileContent] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
-  const [showWhatsApp, setShowWhatsApp] = useState(false);
-  const [waNumber, setWaNumber] = useState("");
   const [pendingPomodoro, setPendingPomodoro] = useState<{
     title: string;
     duration: number;
@@ -405,8 +403,6 @@ export default function ChatPage() {
     try {
       if (intent === "whatsapp") {
         const number = userText.replace(/i?message on /i, "").trim();
-        setWaNumber(number);
-        setShowWhatsApp(true);
         setMessages((prev) => [
           ...prev,
           {
@@ -822,27 +818,6 @@ export default function ChatPage() {
           <p className="text-center text-[11px] text-[#9B9B9B] mt-2">
             FocusFlow can make mistakes. Check important info.
           </p>
-          {showWhatsApp && (
-            <div className="w-full h-64 border-t border-[#424242] bg-[#1a1a1a] p-4 flex flex-col mt-4 rounded-xl">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-white font-bold text-sm">
-                  WhatsApp Screen (Messaging {waNumber})
-                </h3>
-                <button
-                  onClick={() => setShowWhatsApp(false)}
-                  className="text-zinc-400 hover:text-white text-xs"
-                >
-                  Close
-                </button>
-              </div>
-              <div className="flex-1 bg-black rounded border border-[#333] flex items-center justify-center relative overflow-hidden">
-                <p className="text-zinc-500 text-sm z-10">
-                  Running pyautogui automation...
-                </p>
-                <div className="absolute inset-0 bg-green-500/10 animate-pulse"></div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Daily Plan Sidebar */}
