@@ -369,7 +369,7 @@ export default function ChatPage() {
         setTimeout(() => setNotifications([]), 5000);
         setPendingPomodoro(null);
 
-        userText = `Schedule "${pendingPomodoro.title}" using Pomodoro technique (25 min).`; // Let it fall through to generate Gcal link
+        userText = `Schedule "${pendingPomodoro.title}" for 25 minutes using Pomodoro. NOTE TO AI: The start time is exactly ${scheduledTime.toISOString()} and the end time is exactly ${new Date(scheduledTime.getTime() + 25 * 60000).toISOString()}. Use these exact times for the Google Calendar link.`; // Let it fall through to generate Gcal link
       } else if (lowerText.includes("no") || lowerText.includes("full")) {
         // Use full duration
         const result = await autoScheduleTask(
@@ -412,7 +412,7 @@ export default function ChatPage() {
         setTimeout(() => setNotifications([]), 5000);
         setPendingPomodoro(null);
 
-        userText = `Schedule "${pendingPomodoro.title}" for ${pendingPomodoro.duration} minutes.`; // Let it fall through to generate Gcal link
+        userText = `Schedule "${pendingPomodoro.title}" for ${pendingPomodoro.duration} minutes. NOTE TO AI: The start time is exactly ${scheduledTime.toISOString()} and the end time is exactly ${new Date(scheduledTime.getTime() + pendingPomodoro.duration * 60000).toISOString()}. Use these exact times for the Google Calendar link.`; // Let it fall through to generate Gcal link
       } else {
         // Ask again
         setMessages((prev) => [
@@ -879,6 +879,7 @@ export default function ChatPage() {
         toast.success("Task scheduled and added to Daily Plan!");
         setTimeout(() => setNotifications([]), 5000);
         // Let it fall through to generate Gcal link!
+        userText = `${userText}. NOTE TO AI: The start time is exactly ${scheduledTime.toISOString()} and the end time is exactly ${new Date(scheduledTime.getTime() + duration * 60000).toISOString()}. Use these exact times to generate the correct Google Calendar link.`;
       }
 
       if (intent === "quick") {
