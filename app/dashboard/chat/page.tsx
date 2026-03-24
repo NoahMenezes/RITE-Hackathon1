@@ -1387,27 +1387,26 @@ export default function ChatPage() {
                         >
                           {task.status}
                         </div>
-                        {task.status !== "completed" ? (
+                        {task.status !== "completed" && (
                           <button
                             onClick={() =>
                               router.push(
                                 `/dashboard/focus?taskId=${task.id}&title=${encodeURIComponent(task.title)}`,
                               )
                             }
-                            className="flex items-center justify-center p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-blue-500/25"
+                            className="flex items-center justify-center p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-blue-500/25 opacity-0 group-hover:opacity-100 focus:opacity-100"
                             title="Start Focus Mode"
                           >
                             <Play className="w-4 h-4 ml-0.5" />
                           </button>
-                        ) : (
-                          <button
-                            onClick={() => handleDeleteTask(task.id)}
-                            className="flex items-center justify-center p-2 bg-red-600 hover:bg-red-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-red-500/25"
-                            title="Delete Task"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
                         )}
+                        <button
+                          onClick={() => handleDeleteTask(task.id)}
+                          className="flex items-center justify-center p-2 bg-red-600/80 hover:bg-red-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-red-500/25 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                          title="Delete Task"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   ))}

@@ -14,8 +14,10 @@ import {
   completeHabit,
   prioritizeTasks,
   generateRecurringInstances,
+  deleteTask,
 } from "../actions/tasks";
 import {
+  Trash2,
   Play,
   TrendingUp,
   Clock,
@@ -220,6 +222,18 @@ export default function DashboardPage() {
       toast.success("Habit completed! Keep up the streak!");
     } else {
       toast.error("Failed to complete habit");
+    }
+  };
+
+  const handleDeleteTask = async (taskId: number) => {
+    if (!user) return;
+    const result = await deleteTask(taskId.toString());
+    if (result.success) {
+      setTasks(prev => prev.filter(t => t.id !== taskId));
+      setAllTasks(prev => prev.filter(t => t.id !== taskId));
+      toast.success("Task deleted successfully");
+    } else {
+      toast.error("Failed to delete task");
     }
   };
 
@@ -544,6 +558,13 @@ export default function DashboardPage() {
                             <Play className="w-4 h-4 ml-0.5" />
                           </button>
                         )}
+                        <button
+                          onClick={() => handleDeleteTask(task.id)}
+                          className="flex items-center justify-center p-3 bg-red-600/80 hover:bg-red-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-red-500/25 md:opacity-0 group-hover:opacity-100 focus:opacity-100 outline-none ring-2 ring-transparent focus:ring-red-400"
+                          title="Delete Task"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   ))}
