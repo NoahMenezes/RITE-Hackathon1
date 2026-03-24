@@ -53,7 +53,10 @@ export default function DashboardPage() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="p-10 border border-zinc-800 bg-zinc-900/50">
+              <div
+                className="p-10 border border-zinc-800 bg-zinc-900/50 cursor-pointer hover:bg-zinc-800/50 transition-colors"
+                onClick={() => router.push("/dashboard/chat")}
+              >
                 <h3 className="text-sm font-black text-white mb-4 tracking-wider">
                   Neural Link
                 </h3>
