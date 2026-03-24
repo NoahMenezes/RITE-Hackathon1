@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Hero() {
     return (
         <section className="relative w-full h-[100vh] flex flex-col items-center justify-center overflow-hidden bg-transparent">
@@ -10,8 +12,8 @@ export default function Hero() {
                     Experience the ultimate productivity suite that adapts to your mental frequency. Minimalist, powerful, and built for builders who demand perfection.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-6">
-                    <button className="px-16 py-8 bg-blue-600 text-white text-2xl font-black hover:bg-indigo-700 transition-all shadow-[0_20px_50px_-15px_rgba(37,99,235,0.5)] active:translate-y-1 rounded-none uppercase tracking-widest">GET STARTED NOW</button>
-                    <button className="px-16 py-8 bg-white/5 backdrop-blur-3xl border border-white/20 text-white text-2xl font-black hover:bg-white/15 transition-all outline-none rounded-none uppercase tracking-widest">READ MANIFESTO</button>
+                    <Link href="/login" className="px-16 py-8 bg-blue-600 text-white text-2xl font-black hover:bg-indigo-700 transition-all shadow-[0_20px_50px_-15px_rgba(37,99,235,0.5)] active:translate-y-1 rounded-none uppercase tracking-widest text-center">GET STARTED NOW</Link>
+                    <Link href="#how-it-works" className="px-16 py-8 bg-white/5 backdrop-blur-3xl border border-white/20 text-white text-2xl font-black hover:bg-white/15 transition-all outline-none rounded-none uppercase tracking-widest text-center">READ MANIFESTO</Link>
                 </div>
             </div>
         </section>
