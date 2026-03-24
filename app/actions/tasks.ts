@@ -228,7 +228,10 @@ export async function seedDemoData(userId: string) {
       },
     ];
 
-    const statements: any[] = [
+    const statements: {
+      sql: string;
+      args: (string | number | null)[];
+    }[] = [
       {
         sql: "DELETE FROM tasks WHERE user_id = ?",
         args: [parseInt(userId)],
@@ -244,8 +247,8 @@ export async function seedDemoData(userId: string) {
           task.title,
           task.type,
           task.status,
-          task.scheduledFor,
-          task.durationMins,
+          task.scheduledFor ?? null,
+          task.durationMins ?? null,
         ],
       });
     }
