@@ -19,7 +19,6 @@ import remarkGfm from "remark-gfm";
 function parseIntent(text: string): TaskIntent | "unknown" {
   const lower = text.toLowerCase();
   if (lower.startsWith("message on")) return "whatsapp";
-  if (lower.startsWith("message ")) return "instagram";
   if (lower.startsWith("email ")) return "email";
   if (
     lower.includes("focus") ||
@@ -56,7 +55,6 @@ type TaskIntent =
   | "automation"
   | "whatsapp"
   | "email"
-  | "instagram"
   | "unknown";
 import {
   autoScheduleTask,
@@ -440,28 +438,6 @@ export default function ChatPage() {
           await fetch("/api/email", {
             method: "POST",
             body: JSON.stringify({ email: emailAddress }),
-          });
-        } catch (_) {}
-
-        setIsTyping(false);
-        return;
-      }
-
-      if (intent === "instagram") {
-        const username = userText.replace(/i?message /i, "").trim();
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "bot",
-            text: `📸 **Instagram Automation Initiated!**\n\nOpening Instagram to message **${username}**...`,
-          },
-        ]);
-
-        try {
-          await fetch("/api/instagram", {
-            method: "POST",
-            body: JSON.stringify({ username }),
           });
         } catch (_) {}
 
