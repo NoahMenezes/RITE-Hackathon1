@@ -31,25 +31,25 @@ Team: Claim a task, mark it as in-progress (`[~]`), and check it off (`[x]`) whe
 ---
 ## ⏱️ Phase 3: Smart Scheduler & Daily Plan
 *Goal: Help users block out their time automatically.*
-- [ ] **3.1 Daily Plan View (UI)**
+- [x] **3.1 Daily Plan View (UI)**
   - Build a timeline view component on the Dashboard showing today's schedule.
   - Fetch `scheduled` tasks from Turso and render them in chronological order.
-- [ ] **3.2 Auto-Scheduling Logic**
+- [x] **3.2 Auto-Scheduling Logic**
   - If a user says "Study OS", automatically calculate the next free 25-minute slot and insert it into the database.
   - Have the bot reply: *"I've scheduled a 25-minute Pomodoro session for OS at [Time]."*
-- [ ] **3.3 Conflict Resolution (Basic)**
+- [x] **3.3 Conflict Resolution (Basic)**
   - Ensure the scheduler doesn't double-book timeslots.
 ---
 ## 🎯 Phase 4: Focus Mode (Execution)
 *Goal: Keep the user on track when it's time to work.*
-- [ ] **4.1 Focus Mode UI Component**
+- [x] **4.1 Focus Mode UI Component**
   - Create a distraction-free view/modal when a task starts.
   - Display a giant Pomodoro Timer (25:00).
   - Show the current task title.
-- [ ] **4.2 Timer Logic**
+- [x] **4.2 Timer Logic**
   - Implement start, pause, and stop functionality.
   - Add a "Mark Done" button that updates the task status in Turso.
-- [ ] **4.3 "Start from Chat" Feature**
+- [x] **4.3 "Start from Chat" Feature**
   - If user types "Start studying", trigger the Focus Mode modal instantly from the chat screen.
 ---
 ## 🎨 Phase 5: Polish & Demo Prep

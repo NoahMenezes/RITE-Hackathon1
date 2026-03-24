@@ -30,6 +30,18 @@ export default function Navbar() {
         {user ? (
           <>
             <Link
+              href="/dashboard"
+              className="text-zinc-400 hover:text-white transition-colors border-b-2 border-transparent hover:border-blue-600 pb-1 mr-4 hidden md:inline"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/dashboard/chat"
+              className="text-zinc-400 hover:text-white transition-colors border-b-2 border-transparent hover:border-blue-600 pb-1 mr-4 hidden md:inline"
+            >
+              Assistant
+            </Link>
+            <Link
               href="/profile"
               className="flex items-center gap-2 px-6 py-3 rounded-none bg-blue-600 text-white font-black hover:bg-indigo-700 transition-all active:scale-95 shadow-2xl shadow-blue-500/20"
             >
