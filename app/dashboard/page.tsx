@@ -14,6 +14,8 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "../../lib/utils";
+import { AnimatedList } from "../components/AnimatedList";
 
 interface Task {
   id: number;
@@ -32,6 +34,47 @@ interface Stat {
   icon: React.ReactNode;
   color: string;
 }
+
+interface NotificationProps {
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  time: string;
+}
+
+const Notification = ({
+  name,
+  description,
+  icon,
+  color,
+  time,
+}: NotificationProps) => {
+  return (
+    <figure
+      className={cn(
+        "relative mx-auto min-h-fit w-full max-w-[400px] cursor-pointer overflow-hidden rounded-2xl p-6",
+        "transition-all duration-300 ease-in-out hover:scale-[103%]",
+        "bg-zinc-950/90 backdrop-blur-2xl border border-zinc-800 shadow-2xl flex flex-row items-center gap-6",
+      )}
+    >
+      <div
+        className="flex size-12 items-center justify-center shrink-0 rounded-xl border border-white/10 font-black text-xl"
+        style={{ backgroundColor: color }}
+      >
+        <span>{icon}</span>
+      </div>
+      <div className="flex flex-col overflow-hidden">
+        <figcaption className="flex flex-row items-center text-base font-bold text-white">
+          <span>{name}</span>
+          <span className="mx-2 opacity-30">·</span>
+          <span className="text-xs text-zinc-500">{time}</span>
+        </figcaption>
+        <p className="text-sm font-medium text-zinc-400">{description}</p>
+      </div>
+    </figure>
+  );
+};
 
 const TaskSkeleton = () => (
   <div className="relative p-6 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col md:flex-row md:justify-between md:items-center gap-4 animate-pulse">
@@ -69,6 +112,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
   const [seedingDemo, setSeedingDemo] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationProps[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -170,6 +214,16 @@ export default function DashboardPage() {
 
   return (
     <div className="relative min-h-screen bg-transparent text-white selection:bg-blue-500/40">
+      {notifications.length > 0 && (
+        <div className="fixed top-32 right-8 w-full max-w-[400px] z-[200]">
+          <AnimatedList delay={100}>
+            {notifications.map((n, i) => (
+              <Notification key={i} {...n} />
+            ))}
+          </AnimatedList>
+        </div>
+      )}
+
       <main className="flex flex-col items-center justify-start pt-32 pb-20 px-12 relative z-10 w-full min-h-screen">
         <div className="text-center mb-16 max-w-6xl w-full">
           <h1 className="text-5xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-500 tracking-tight leading-tight mb-6">
@@ -185,7 +239,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Section */}
-        <div className="w-[110vw] relative left-1/2 -translate-x-1/2 px-[5vw] lg:px-[10vw] mb-20">
+        <div className="w-[95vw] max-w-[1400px] relative left-1/2 -translate-x-1/2 px-[2vw] lg:px-[5vw] mb-20">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <StatCard key={index} stat={stat} />
@@ -193,7 +247,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="w-[110vw] relative left-1/2 -translate-x-1/2 px-[5vw] lg:px-[10vw] space-y-24">
+        <div className="w-[95vw] max-w-[1400px] relative left-1/2 -translate-x-1/2 px-[2vw] lg:px-[5vw] space-y-24">
           {/* Daily Plan Section */}
           <div className="space-y-8">
             <div className="flex items-center gap-6 border-b border-white/10 pb-8">
@@ -269,11 +323,22 @@ export default function DashboardPage() {
                         </div>
                         {task.status !== "completed" && (
                           <button
-                            onClick={() =>
-                              router.push(
-                                `/dashboard/focus?taskId=${task.id}&title=${encodeURIComponent(task.title)}`,
-                              )
-                            }
+                            onClick={() => {
+                              setNotifications([
+                                {
+                                  name: "Focus Mode Activated",
+                                  description: `Starting session: ${task.title}`,
+                                  icon: "🚀",
+                                  color: "#3b82f6",
+                                  time: "Just now",
+                                },
+                              ]);
+                              setTimeout(() => {
+                                router.push(
+                                  `/dashboard/focus?taskId=${task.id}&title=${encodeURIComponent(task.title)}`,
+                                );
+                              }, 1500);
+                            }}
                             className="flex items-center justify-center p-4 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-blue-500/25 lg:opacity-0 group-hover:opacity-100 focus:opacity-100 outline-none ring-2 ring-transparent focus:ring-blue-400"
                             title="Start Focus Mode"
                           >
