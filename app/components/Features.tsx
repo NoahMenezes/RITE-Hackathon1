@@ -1,3 +1,5 @@
+import { BorderBeam } from "@/components/ui/border-beam";
+
 import ShineBorder from "./ShineBorder";
 
 export default function Features() {
@@ -38,6 +40,7 @@ export default function Features() {
             <div className="grid md:grid-cols-2 gap-12">
                 {features.map((feature, i) => (
                     <ShineBorder key={i} borderRadius={0} borderWidth={1} color={["#3b82f6", "#8b5cf6", "#3b82f6"]} duration={6} className="w-full !p-0 !bg-zinc-950/40 !backdrop-blur-3xl !border-zinc-900 group transition-all hover:!bg-zinc-900/60 min-h-[500px]">
+                        <BorderBeam size={200} duration={12} delay={9} />
                         <div className="p-20 h-full flex flex-col justify-center relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-10 text-zinc-900 font-extrabold text-3xl group-hover:text-blue-500/20 transition-all select-none opacity-40">M0{i + 1}</div>
                             <div className="space-y-12">

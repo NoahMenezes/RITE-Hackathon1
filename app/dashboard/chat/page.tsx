@@ -413,7 +413,7 @@ export default function ChatPage() {
       )}
 
       {/* Full-viewport wrapper with background */}
-      <div className="chat-root relative w-full h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-[#212121]">
+      <div className="chat-root relative w-full h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-black">
         {/* Main chat container — full width */}
         <div className="relative z-10 flex flex-col w-full h-full max-w-4xl mx-auto">
           {/* ── Messages Area ── */}

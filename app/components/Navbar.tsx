@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, LogOut } from "lucide-react";
 import { useUser } from "../../lib/useUser";
+import { BorderBeam } from "@/components/ui/border-beam";
 
 export default function Navbar() {
   const router = useRouter();
@@ -17,7 +18,8 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-7xl px-12 md:px-16 py-6 backdrop-blur-3xl bg-black/60 border border-zinc-800/80 shadow-2xl transition-all hover:bg-black/90 group flex items-center justify-between">
+    <nav className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-7xl px-12 md:px-16 py-6 backdrop-blur-3xl bg-black/60 border border-zinc-800/80 shadow-2xl transition-all hover:bg-black/90 group flex items-center justify-between overflow-hidden">
+      <BorderBeam size={150} duration={10} delay={0} />
       <Link
         href="/"
         className="text-base font-black text-white flex items-center gap-4 hover:opacity-80 transition-opacity"

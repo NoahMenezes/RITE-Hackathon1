@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import { BorderBeam } from "@/components/ui/border-beam";
 
 interface Task {
   id: number;
@@ -39,7 +40,8 @@ function AnalyticsCard({
   trend?: string;
 }) {
   return (
-    <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-blue-500/50 transition-all">
+    <div className="relative overflow-hidden p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg hover:border-blue-500/50 transition-all">
+      <BorderBeam size={100} duration={12} delay={0} />
       <div className="flex items-center justify-between mb-2">
         <Icon className="w-5 h-5 text-blue-400" />
         {trend && (
@@ -308,6 +310,7 @@ export default function DashboardPage() {
                       key={task.id}
                       className="relative p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] flex flex-col md:flex-row md:justify-between md:items-center gap-4 transition-all duration-300 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 group backdrop-blur-sm"
                     >
+                      <BorderBeam size={150} duration={12} delay={9} />
                       <div className="absolute w-4 h-4 bg-zinc-950 border-2 border-blue-500 rounded-full -left-[41px] top-1/2 -translate-y-1/2 group-hover:bg-blue-500 transition-colors duration-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                       <div>
                         <h3 className="text-lg font-bold text-zinc-100 mb-2 group-hover:text-white transition-colors">

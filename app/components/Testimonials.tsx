@@ -1,3 +1,5 @@
+import { BorderBeam } from "@/components/ui/border-beam";
+
 import ShineBorder from "./ShineBorder";
 
 const testimonials = [
@@ -21,6 +23,7 @@ export default function Testimonials() {
                 <div className="animate-marquee whitespace-nowrap flex gap-12 py-10 px-6">
                     {testimonials.concat(testimonials).map((t, i) => (
                         <ShineBorder key={i} borderRadius={0} borderWidth={1} color={["#A07CFE", "#FE8FB5", "#FFBE7B"]} duration={10} className="inline-block w-[450px] !p-0 !bg-zinc-950/40 !backdrop-blur-3xl !border-zinc-900 shadow-2xl transition-all hover:bg-zinc-900 group relative">
+                            <BorderBeam size={200} duration={12} delay={9} />
                             <div className="p-16 h-full flex flex-col justify-between">
                                 <div className="absolute top-0 right-0 p-4 text-zinc-800 font-black text-3xl group-hover:text-blue-500/20 transition-colors select-none opacity-20 whitespace-normal">“</div>
                                 <div className="mb-10 text-left">
