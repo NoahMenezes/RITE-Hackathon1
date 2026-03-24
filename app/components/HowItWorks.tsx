@@ -64,7 +64,7 @@ export default function HowItWorks() {
                                 <div className="absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-2 border-black z-30 hidden md:block shadow-[0_0_20px_white]" />
 
                                 {/* Card Container Target for left/right */}
-                                <div className={`w-full md:w-[48%] flex ${i % 2 === 0 ? 'md:justify-end' : 'md:justify-start'}`}>
+                                <div className={`w-full md:w-[70%] flex ${i % 2 === 0 ? 'md:justify-end' : 'md:justify-start'}`}>
                                     <ShineBorder borderRadius={0} borderWidth={1} color={["#ffffff", "#3b82f6", "#ffffff"]} duration={14} className="w-full !p-0 !bg-zinc-950/20 !backdrop-blur-3xl !border-zinc-900 group-hover:bg-zinc-900/40 min-h-[400px]">
                                         <div className="p-20 md:p-24 h-full relative overflow-hidden flex flex-col text-left shadow-[0_50px_100px_-20px_rgba(0,0,0,1)]">
                                             <div className="absolute top-0 right-0 p-12 text-white font-black text-9xl opacity-5 select-none tracking-widest">{step.number}</div>
@@ -78,7 +78,7 @@ export default function HowItWorks() {
                                 </div>
 
                                 {/* Empty space for the other side */}
-                                <div className="hidden md:block w-[48%]" />
+                                <div className="hidden md:block w-[30%]" />
                             </motion.div>
                         ))}
                     </div>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ShineBorder from "../components/ShineBorder";
-import { supabase } from "../../lib/supabase";
+import { createClient } from "../../lib/supabase/client";
 import { AnimatedList } from "../components/AnimatedList";
 import { cn } from "../../lib/utils";
 
@@ -32,6 +32,7 @@ const Notification = ({ name, description, icon, color, time }: any) => {
 }
 
 export default function SignupPage() {
+    const supabase = createClient();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
@@ -42,6 +43,7 @@ export default function SignupPage() {
         e.preventDefault();
         setLoading(true);
 
+        console.log("INITIALIZING SIGNUP PROTOCOL:", email);
         const { error } = await supabase.auth.signUp({
             email,
             password,
@@ -49,14 +51,17 @@ export default function SignupPage() {
         });
 
         if (error) {
+            console.error("SIGNUP DENIED:", error.message);
             setNotifications([{
                 name: "Access Denied",
-                description: error.message,
+                description: error.message || "Identity establishment failed.",
                 time: "ERROR",
                 icon: "❌",
                 color: "#ef4444",
             }]);
+            alert("SIGNUP DENIED: " + error.message);
         } else {
+            console.log("IDENTITY ESTABLISHED. CHECK ENCRYPTED UID FOR ACCESS.");
             setNotifications([{
                 name: "Access Granted",
                 description: "Check your email for access protocol.",
@@ -64,6 +69,7 @@ export default function SignupPage() {
                 icon: "✔️",
                 color: "#10b981",
             }]);
+            alert("IDENTITY ESTABLISHED: Please check your email inbox to verify your account!");
         }
         setLoading(false);
         setTimeout(() => setNotifications([]), 5000);

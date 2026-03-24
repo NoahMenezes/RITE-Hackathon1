@@ -5,7 +5,7 @@ import Link from "next/link";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ShineBorder from "../components/ShineBorder";
-import { supabase } from "../../lib/supabase";
+import { createClient } from "../../lib/supabase/client";
 import { AnimatedList } from "../components/AnimatedList";
 import { cn } from "../../lib/utils";
 
@@ -32,6 +32,7 @@ const Notification = ({ name, description, icon, color, time }: any) => {
 }
 
 export default function LoginPage() {
+    const supabase = createClient();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -40,13 +41,18 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+
+        console.log("IDENTIFYING ACCESS:", email);
         const { error } = await supabase.auth.signInWithPassword({ email, password });
 
         if (error) {
-            setNotifications([{ name: "Access Failed", description: "Incorrect keys provided.", time: "DENIED", icon: "🔒", color: "#ef4444" }]);
+            console.error("ACCESS DENIED:", error.message);
+            setNotifications([{ name: "Access Failed", description: error.message || "Incorrect keys provided.", time: "DENIED", icon: "🔒", color: "#ef4444" }]);
+            alert("ACCESS DENIED: " + error.message);
         } else {
+            console.log("ACCESS GRANTED");
             setNotifications([{ name: "Access Verified", description: "Identity confirmed.", time: "GRANTED", icon: "🗝️", color: "#3b82f6" }]);
-            window.location.href = "/";
+            window.location.href = "/dashboard";
         }
         setLoading(false);
         setTimeout(() => setNotifications([]), 5000);

@@ -5,7 +5,7 @@ import Link from "next/link";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ShineBorder from "../components/ShineBorder";
-import { supabase } from "../../lib/supabase";
+import { createClient } from "../../lib/supabase/client";
 import { AnimatedList } from "../components/AnimatedList";
 import { cn } from "../../lib/utils";
 
@@ -32,6 +32,7 @@ const Notification = ({ name, description, icon, color, time }: any) => {
 }
 
 export default function ForgotPasswordPage() {
+    const supabase = createClient();
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [notifications, setNotifications] = useState<any[]>([]);
@@ -39,14 +40,20 @@ export default function ForgotPasswordPage() {
     const handleReset = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+
+        console.log("RECOVERY PROTOCOL INITIATED FOR:", email);
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${window.location.origin}/login`,
         });
 
         if (error) {
-            setNotifications([{ name: "Transmission Error", description: error.message, time: "FAILED", icon: "⚠️", color: "#ef4444" }]);
+            console.error("RECOVERY TRANSMISSION FAILED:", error.message);
+            setNotifications([{ name: "Transmission Error", description: error.message || "Email UID not recognized.", time: "FAILED", icon: "⚠️", color: "#ef4444" }]);
+            alert("TRANSMISSION ERROR: " + error.message);
         } else {
+            console.log("RECOVERY KEY TRANSMITTED.");
             setNotifications([{ name: "Key Transmitted", description: "Recovery sequence sent to identity UID.", time: "SUCCESS", icon: "📧", color: "#ef4444" }]);
+            alert("TRANSMIT SUCCESS: Recovery link sent to your email!");
         }
         setLoading(false);
         setTimeout(() => setNotifications([]), 5000);
