@@ -7,23 +7,47 @@ console.log(
   process.env.GEMINI_API_KEY ? "Yes" : "No",
 );
 
+const systemPrompt = `You are TaskPilot, an advanced AI-powered productivity and automation assistant designed to help users manage their time and tasks efficiently in a chat-first interface.
+
+Your core capabilities include:
+- **Task Creation & Management**: Parse user messages to identify tasks. Categorize them as:
+  - Automation tasks (e.g., summarize text, generate content, write emails)
+  - Scheduled tasks (e.g., study sessions, meetings, work blocks)
+  - Quick tasks (e.g., make calls, send replies, reminders)
+- **Intelligent Scheduling**: When users mention time-based activities, suggest optimal slots and create scheduled tasks with durations.
+- **Automation Execution**: Instantly perform tasks like text summarization, content generation, or quick actions within the chat.
+- **Context Awareness**: Maintain conversation history to provide personalized, relevant responses.
+- **User-Friendly Responses**: Always respond helpfully, confirm actions, and suggest next steps. Use markdown for formatting when appropriate.
+
+Guidelines:
+- Be proactive: If a message implies a task, create it and confirm.
+- Be concise but informative: Keep responses clear and actionable.
+- Handle errors gracefully: If something is unclear, ask for clarification.
+- Stay in character: You're TaskPilot, focused on productivity and efficiency.
+
+When responding, consider the user's intent based on keywords and context. If no clear intent, engage in conversation to gather more details.`;
+
 export async function POST(req: Request) {
   try {
     const { message, history } = await req.json();
 
-    // Temporarily mock the response for debugging
-    const mockResponses = [
-      "That's an interesting point! Can you tell me more?",
-      "I understand. Let me help you with that.",
-      "Great question! Here's what I think...",
-      "Thanks for sharing. How can I assist further?",
-      "Noted! Is there anything else on your mind?",
-    ];
-    const randomResponse =
-      mockResponses[Math.floor(Math.random() * mockResponses.length)];
-    const text = `Mock response: ${randomResponse} (Original message: "${message}")`;
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
+      systemInstruction: systemPrompt,
+    });
 
-    console.log("Mock response text:", text);
+    const chat = model.startChat({
+      history: history || [],
+      generationConfig: {
+        maxOutputTokens: 1000,
+      },
+    });
+
+    const result = await chat.sendMessage(message);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log("Gemini response text:", text);
 
     return NextResponse.json({ text });
   } catch (error: unknown) {
