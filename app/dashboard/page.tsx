@@ -334,17 +334,14 @@ export default function DashboardPage() {
   return (
     <div className="relative min-h-screen bg-transparent text-white selection:bg-blue-500/40">
       <main className="flex flex-col items-center justify-center pb-40 px-12 relative z-10 w-full min-h-screen">
-        <div className="text-center mb-20 max-w-4xl w-full mt-12">
+        <div className="text-center mb-6 max-w-4xl w-full mt-8">
           <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-white to-zinc-500 tracking-tight leading-tight mb-6">
-            Main <br />
+            Main{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-400">
               Dashboard.
             </span>
           </h1>
-          <div className="w-24 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto my-8 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
-          <p className="text-sm text-zinc-400 font-medium">
-            Access Granted. Identity: {user.name || user.email}
-          </p>
+          <div className="w-24 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto my-4 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
         </div>
 
         <ShineBorder
@@ -354,7 +351,7 @@ export default function DashboardPage() {
           duration={10}
           className="w-full max-w-6xl !bg-zinc-950/80 !backdrop-blur-3xl !border-zinc-900 shadow-2xl p-0"
         >
-          <div className="p-12 md:p-24 space-y-12 w-full">
+          <div className="p-6 md:p-12 space-y-12 w-full">
             {/* Analytics Section */}
             <div className="space-y-6">
               <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8">
