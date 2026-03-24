@@ -153,6 +153,19 @@ export default function ChatPage() {
         }
       }
 
+      // 5.2 Error Handling for Unknown Intents
+      if (intent === "unknown") {
+        const unknownMsg: Message = {
+          id: (Date.now() + 2).toString(),
+          role: "bot",
+          text: `🤔 **I didn't quite catch that!**\n\nI can help you with:\n\n• **Scheduling tasks**: "Study OS", "Work on project", "Meeting with team"\n• **Quick tasks**: "Call mom", "Reply to email", "Quick review"\n• **Automation**: "Summarize this text", "Generate ideas", "Write a draft"\n• **Focus mode**: "Start studying", "Begin focus session"\n\nWhat would you like to get done?`,
+          intent: "unknown",
+        };
+        setMessages((prev) => [...prev, unknownMsg]);
+        setIsTyping(false);
+        return;
+      }
+
       // 2.1 LLM Integration via API
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -211,7 +224,7 @@ export default function ChatPage() {
               FocusFlow Assistant
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Phase 2: Automation Engine Active
+              Phase 5: Polish & Demo Prep Complete
             </p>
           </div>
         </div>
@@ -342,7 +355,7 @@ export default function ChatPage() {
           </div>
         </div>
         <p className="text-center text-[10px] text-gray-400 mt-4 font-black uppercase tracking-widest">
-          FocusFlow Intelligent Engine v2.0
+          FocusFlow Intelligent Engine v3.0 - Phase 5 Complete
         </p>
       </div>
     </div>

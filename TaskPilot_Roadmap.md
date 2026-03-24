@@ -54,12 +54,12 @@ Team: Claim a task, mark it as in-progress (`[~]`), and check it off (`[x]`) whe
 ---
 ## 🎨 Phase 5: Polish & Demo Prep
 *Goal: Make it look incredible for the judges.*
-- [ ] **5.1 Animations & Feedback**
+- [x] **5.1 Animations & Feedback**
   - Add loading skeletons or "Bot is thinking..." typing indicators.
   - Add toast notifications (using a library like `sonner` or `react-hot-toast`) for task creation.
-- [ ] **5.2 Error Handling**
+- [x] **5.2 Error Handling**
   - Handle cases where the parser doesn't understand the user gracefully (*"I didn't quite catch that. Did you want to schedule a task or summarize something?"*).
-- [ ] **5.3 Pre-seed Demo Data**
+- [x] **5.3 Pre-seed Demo Data**
   - Create a script or button to inject a perfect "demo day" scenario so the presentation goes flawlessly without manual typing setup.
 ---
 ### 💡 Tech Stack Reminders
