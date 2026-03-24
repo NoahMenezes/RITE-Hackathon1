@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, User, Copy, Check, Sparkles } from "lucide-react";
+import { Send, Bot, User, Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { parseIntent, TaskIntent } from "../../../lib/parser";
@@ -31,24 +31,24 @@ const Notification = ({
   return (
     <figure
       className={cn(
-        "relative mx-auto min-h-fit w-full max-w-[400px] cursor-pointer overflow-hidden rounded-2xl p-6",
+        "relative mx-auto min-h-fit w-full max-w-[400px] cursor-pointer overflow-hidden rounded-2xl p-5",
         "transition-all duration-300 ease-in-out hover:scale-[103%]",
-        "bg-zinc-950/90 backdrop-blur-2xl border border-zinc-800 shadow-2xl flex flex-row items-center gap-6",
+        "bg-[#0d0d14]/95 backdrop-blur-2xl border border-white/10 shadow-2xl flex flex-row items-center gap-5",
       )}
     >
       <div
-        className="flex size-12 items-center justify-center shrink-0 rounded-xl border border-white/10 font-black text-xl"
+        className="flex size-11 items-center justify-center shrink-0 rounded-xl border border-white/10 font-black text-xl"
         style={{ backgroundColor: color }}
       >
         <span>{icon}</span>
       </div>
       <div className="flex flex-col overflow-hidden">
-        <figcaption className="flex flex-row items-center text-base font-bold text-white">
+        <figcaption className="flex flex-row items-center text-sm font-bold text-white">
           <span>{name}</span>
           <span className="mx-2 opacity-30">·</span>
-          <span className="text-xs text-zinc-500">{time}</span>
+          <span className="text-xs text-white/40">{time}</span>
         </figcaption>
-        <p className="text-sm font-medium text-zinc-400">{description}</p>
+        <p className="text-xs font-medium text-white/50">{description}</p>
       </div>
     </figure>
   );
@@ -96,7 +96,6 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     if (!inputValue.trim()) return;
-
     const userText = inputValue;
     const intent = parseIntent(userText);
     const userMessage: Message = {
@@ -105,71 +104,70 @@ export default function ChatPage() {
       text: userText,
       intent,
     };
-
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsTyping(true);
 
     try {
-      // 4.3 "Start from Chat" Feature
       if (intent === "focus" && user) {
         const result = await autoScheduleTask(user.id.toString(), userText, 25);
-
         if (!result.success) {
-          const errorMsg: Message = {
-            id: (Date.now() + 1).toString(),
-            role: "bot",
-            text: `❌ **Focus Mode Failed!**\n\nI couldn't schedule this focus session: ${result.error || "Unknown error"}. Please try again later.`,
-          };
-          setMessages((prev) => [...prev, errorMsg]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `❌ **Focus Mode Failed!**\n\nI couldn't schedule this focus session: ${result.error || "Unknown error"}. Please try again later.`,
+            },
+          ]);
           setIsTyping(false);
           toast.error("Failed to start focus mode!");
           return;
         }
-
-        const focusMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "bot",
-          text: `🚀 **Focus Mode Initiated!**\n\nI've scheduled a 25-minute focus session for "${userText}" and transitioning you to the deep focus environment now...`,
-        };
-        setMessages((prev) => [...prev, focusMsg]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `🚀 **Focus Mode Initiated!**\n\nI've scheduled a 25-minute focus session for "${userText}" and transitioning you to the deep focus environment now...`,
+          },
+        ]);
         setIsTyping(false);
-
         toast.loading("Initiating Focus Sequence...", { duration: 1500 });
-
-        setTimeout(() => {
-          router.push(
-            `/dashboard/focus?taskId=${result.id}&title=${encodeURIComponent(userText)}`,
-          );
-        }, 1500);
+        setTimeout(
+          () =>
+            router.push(
+              `/dashboard/focus?taskId=${result.id}&title=${encodeURIComponent(userText)}`,
+            ),
+          1500,
+        );
         return;
       }
 
-      // 3.2 Auto-Scheduling Logic
       if (intent === "scheduled" && user) {
         const result = await autoScheduleTask(user.id.toString(), userText, 25);
-
         if (!result.success) {
-          const errorMsg: Message = {
-            id: (Date.now() + 1).toString(),
-            role: "bot",
-            text: `❌ **Scheduling Failed!**\n\nI couldn't schedule this task: ${result.error || "Unknown error"}. Please try again later.`,
-          };
-          setMessages((prev) => [...prev, errorMsg]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `❌ **Scheduling Failed!**\n\nI couldn't schedule this task: ${result.error || "Unknown error"}. Please try again later.`,
+            },
+          ]);
           setIsTyping(false);
           toast.error("Failed to schedule task!");
           return;
         }
-
         const scheduledTime = new Date(result.scheduledFor!);
-
-        const scheduledMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "bot",
-          text: `📅 **Task Scheduled!**\n\nI've scheduled a 25-minute Pomodoro session for this task at **${scheduledTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}**.\n\nIt has been added to your Daily Plan.`,
-        };
-
-        setMessages((prev) => [...prev, scheduledMsg]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "bot",
+            text: `📅 **Task Scheduled!**\n\nI've scheduled a 25-minute Pomodoro session for this task at **${scheduledTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}**.\n\nIt has been added to your Daily Plan.`,
+          },
+        ]);
         setIsTyping(false);
         setNotifications([
           {
@@ -185,19 +183,19 @@ export default function ChatPage() {
         return;
       }
 
-      // 2.3 Quick Task Burst Logic
       if (intent === "quick") {
         const newBuffer = [...quickTaskBuffer, userText];
         setQuickTaskBuffer(newBuffer);
-
         if (newBuffer.length >= 3) {
-          const burstMsg: Message = {
-            id: (Date.now() + 1).toString(),
-            role: "bot",
-            text: `🚀 **Quick Task Burst Detected!**\n\nI've grouped these 3 tasks into a single **15-min productivity sprint**:\n1. ${newBuffer[0]}\n2. ${newBuffer[1]}\n3. ${newBuffer[2]}\n\nWould you like to start this burst now?`,
-            isQuickBurst: true,
-          };
-          setMessages((prev) => [...prev, burstMsg]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `🚀 **Quick Task Burst Detected!**\n\nI've grouped these 3 tasks into a single **15-min productivity sprint**:\n1. ${newBuffer[0]}\n2. ${newBuffer[1]}\n3. ${newBuffer[2]}\n\nWould you like to start this burst now?`,
+              isQuickBurst: true,
+            },
+          ]);
           setQuickTaskBuffer([]);
           setIsTyping(false);
           toast.success("Quick Burst grouped successfully!");
@@ -207,20 +205,20 @@ export default function ChatPage() {
         }
       }
 
-      // 5.2 Error Handling for Unknown Intents
       if (intent === "unknown") {
-        const unknownMsg: Message = {
-          id: (Date.now() + 2).toString(),
-          role: "bot",
-          text: `🤔 **I didn't quite catch that!**\n\nI can help you with:\n\n• **Scheduling tasks**: "Study OS", "Work on project", "Meeting with team"\n• **Quick tasks**: "Call mom", "Reply to email", "Quick review"\n• **Automation**: "Summarize this text", "Generate ideas", "Write a draft"\n• **Focus mode**: "Start studying", "Begin focus session"\n\nWhat would you like to get done?`,
-          intent: "unknown",
-        };
-        setMessages((prev) => [...prev, unknownMsg]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 2).toString(),
+            role: "bot",
+            text: `🤔 **I didn't quite catch that!**\n\nI can help you with:\n\n• **Scheduling tasks**: "Study OS", "Work on project", "Meeting with team"\n• **Quick tasks**: "Call mom", "Reply to email", "Quick review"\n• **Automation**: "Summarize this text", "Generate ideas", "Write a draft"\n• **Focus mode**: "Start studying", "Begin focus session"\n\nWhat would you like to get done?`,
+            intent: "unknown",
+          },
+        ]);
         setIsTyping(false);
         return;
       }
 
-      // 2.1 LLM Integration via API
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -232,26 +230,28 @@ export default function ChatPage() {
           })),
         }),
       });
-
       const data = await response.json();
-
-      const botMessage: Message = {
-        id: (Date.now() + 2).toString(),
-        role: "bot",
-        text:
-          data.text || "I'm having trouble connecting to my brain right now...",
-        intent,
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 2).toString(),
+          role: "bot",
+          text:
+            data.text ||
+            "I'm having trouble connecting to my brain right now...",
+          intent,
+        },
+      ]);
     } catch (error) {
       console.error("Chat Error:", error);
-      const errorMessage: Message = {
-        id: (Date.now() + 2).toString(),
-        role: "bot",
-        text: "Sorry, I encountered an error processing that request. Please try again.",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 2).toString(),
+          role: "bot",
+          text: "Sorry, I encountered an error processing that request. Please try again.",
+        },
+      ]);
       toast.error("Failed to process request");
     } finally {
       setIsTyping(false);
@@ -267,8 +267,26 @@ export default function ChatPage() {
 
   return (
     <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+
+        @keyframes pulse {
+          from { transform: scale(1); opacity: var(--base-opacity, 0.3); }
+          to   { transform: scale(1.6); opacity: calc(var(--base-opacity, 0.3) * 0.4); }
+        }
+        @keyframes shimmer {
+          0%   { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        .chat-root { font-family: 'DM Sans', sans-serif; }
+        .scrollbar-custom::-webkit-scrollbar { width: 8px; }
+        .scrollbar-custom::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-custom::-webkit-scrollbar-thumb { background: #424242; border-radius: 4px; }
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover { background: #565656; }
+      `}</style>
+
       {notifications.length > 0 && (
-        <div className="fixed top-32 right-8 w-full max-w-[400px] z-[200]">
+        <div className="fixed top-24 right-6 w-full max-w-[400px] z-[200]">
           <AnimatedList delay={100}>
             {notifications.map((n, i) => (
               <Notification key={i} {...n} />
@@ -276,147 +294,121 @@ export default function ChatPage() {
           </AnimatedList>
         </div>
       )}
-      <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto w-full bg-white dark:bg-gray-950 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden mt-6">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-              <Bot className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-gray-900 dark:text-gray-100">
-                FocusFlow Assistant
-              </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Phase 5: Polish & Demo Prep Complete
-              </p>
-            </div>
-          </div>
-          {quickTaskBuffer.length > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100 dark:border-amber-900/50 animate-pulse">
-              <Sparkles className="w-3 h-3" />
-              Burst Buffer: {quickTaskBuffer.length}/3
-            </div>
-          )}
-        </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-gray-950 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-800">
-          <AnimatePresence initial={false}>
-            {messages.map((msg) => (
-              <motion.div
-                key={msg.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex gap-4 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                {msg.role === "bot" && (
-                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0 mt-1">
-                    <Bot className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                )}
-
-                <div
-                  className={`group relative max-w-[80%] rounded-2xl px-5 py-3 text-sm shadow-sm ${
-                    msg.role === "user"
-                      ? "bg-blue-600 text-white rounded-tr-sm"
-                      : msg.isQuickBurst
-                        ? "bg-linear-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-900/20 border border-blue-100 dark:border-blue-900/50 text-gray-800 dark:text-gray-200 rounded-tl-sm"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-sm"
-                  }`}
+      {/* Full-viewport wrapper with background */}
+      <div className="chat-root relative w-full h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-[#212121]">
+        {/* Main chat container — full width */}
+        <div className="relative z-10 flex flex-col w-full h-full max-w-4xl mx-auto">
+          {/* ── Messages Area ── */}
+          <div className="flex-1 overflow-y-auto scrollbar-custom px-4 py-8 space-y-6">
+            <AnimatePresence initial={false}>
+              {messages.map((msg) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex gap-4 px-4 py-2 w-full max-w-3xl mx-auto ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
                 >
-                  <div className="prose prose-sm dark:prose-invert prose-p:leading-relaxed prose-pre:bg-gray-900 prose-pre:text-gray-100 max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {msg.text}
-                    </ReactMarkdown>
-                  </div>
-
-                  {msg.role === "bot" && (
-                    <button
-                      onClick={() => copyToClipboard(msg.text, msg.id)}
-                      className="absolute -right-10 top-2 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-                      title="Copy to clipboard"
-                    >
-                      {copiedId === msg.id ? (
-                        <Check className="w-4 h-4" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </button>
-                  )}
-
-                  {msg.intent && msg.intent !== "unknown" && (
-                    <div className="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700/50 text-[10px] font-black flex items-center gap-2 text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                      <span>{msg.intent} Intent</span>
-                      {msg.isQuickBurst && <span>• Grouped</span>}
+                  {msg.role === "bot" ? (
+                    <div className="w-8 h-8 rounded-full bg-[#10a37f] flex items-center justify-center shrink-0 mt-1">
+                      <Bot className="w-5 h-5 text-white" />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-[#343541] flex items-center justify-center shrink-0 mt-1">
+                      <User className="w-5 h-5 text-white" />
                     </div>
                   )}
-                </div>
 
-                {msg.role === "user" && (
-                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center shrink-0 mt-1">
-                    <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  <div
+                    className={cn(
+                      "group relative text-base leading-relaxed max-w-[85%]",
+                      msg.role === "user" ? "text-right" : "text-left",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "prose prose-sm md:prose-base max-w-none text-[#ECECEC] prose-p:leading-relaxed prose-strong:text-white prose-code:text-[#ECECEC] prose-pre:bg-[#000000] prose-pre:border prose-pre:border-[#333333] prose-li:text-[#ECECEC] prose-headings:text-white",
+                        msg.role === "user"
+                          ? "bg-[#2f2f2f] px-5 py-2.5 rounded-3xl"
+                          : "",
+                      )}
+                    >
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.text}
+                      </ReactMarkdown>
+                    </div>
+
+                    {msg.role === "bot" && (
+                      <button
+                        onClick={() => copyToClipboard(msg.text, msg.id)}
+                        className="absolute -bottom-8 left-0 p-1.5 opacity-0 group-hover:opacity-100 transition-all text-[#ececec] hover:text-white"
+                        title="Copy to clipboard"
+                      >
+                        {copiedId === msg.id ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </button>
+                    )}
                   </div>
-                )}
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
 
-            {isTyping && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex gap-4 justify-start"
-              >
-                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0 mt-1">
-                  <Bot className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-sm px-5 py-4 flex items-center gap-1 shadow-sm border border-transparent dark:border-gray-700/30">
-                  <motion.div
-                    className="w-1.5 h-1.5 bg-blue-400 rounded-full"
-                    animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 0.8, repeat: Infinity, delay: 0 }}
-                  />
-                  <motion.div
-                    className="w-1.5 h-1.5 bg-blue-400 rounded-full"
-                    animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 0.8, repeat: Infinity, delay: 0.2 }}
-                  />
-                  <motion.div
-                    className="w-1.5 h-1.5 bg-blue-400 rounded-full"
-                    animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 0.8, repeat: Infinity, delay: 0.4 }}
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <div ref={messagesEndRef} />
-        </div>
+              {isTyping && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex gap-4 px-4 py-2 w-full max-w-3xl mx-auto flex-row"
+                >
+                  <div className="w-8 h-8 rounded-full bg-[#10a37f] flex items-center justify-center shrink-0 mt-1">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2 mt-3">
+                    {[0, 0.15, 0.3].map((delay, i) => (
+                      <motion.div
+                        key={i}
+                        className="w-2 h-2 bg-[#ececec] rounded-full"
+                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 0.8, repeat: Infinity, delay }}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <div ref={messagesEndRef} className="h-4" />
+          </div>
 
-        {/* Input Area */}
-        <div className="p-6 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800">
-          <div className="relative flex items-center gap-3">
-            <div className="relative flex-1">
+          {/* ── Input Area ── */}
+          <div className="px-4 py-4 w-full max-w-3xl mx-auto">
+            <div className="relative flex items-center gap-3 bg-[#2f2f2f] border border-[#424242] rounded-3xl px-4 py-3 shadow-sm focus-within:bg-[#383838]">
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type your task here... (e.g. 'Summarize this doc')"
-                className="w-full pl-5 pr-12 py-4 bg-gray-50/50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500"
+                placeholder="Message FocusFlow..."
+                className="flex-1 bg-transparent text-base text-[#ECECEC] placeholder-[#9B9B9B] outline-none"
               />
-              <div
-                className={`absolute right-4 top-1/2 -translate-y-1/2 transition-all ${inputValue.trim() ? "opacity-100 scale-100" : "opacity-0 scale-75"}`}
+              <motion.button
+                onClick={handleSend}
+                disabled={!inputValue.trim() || isTyping}
+                whileTap={{ scale: 0.95 }}
+                className={cn(
+                  "flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 shrink-0",
+                  inputValue.trim() && !isTyping
+                    ? "bg-white text-black hover:bg-[#d9d9d9]"
+                    : "bg-[#424242] text-[#9b9b9b] cursor-not-allowed",
+                )}
               >
-                <button
-                  onClick={handleSend}
-                  disabled={!inputValue.trim() || isTyping}
-                  className="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl transition-all active:scale-95 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-blue-500/20"
-                >
-                  <Send className="w-4 h-4 ml-0.5" />
-                </button>
-              </div>
+                <Send className="w-4 h-4 ml-0.5" />
+              </motion.button>
             </div>
+            <p className="text-center text-[11px] text-[#9B9B9B] mt-2">
+              FocusFlow can make mistakes. Check important info.
+            </p>
           </div>
         </div>
       </div>
