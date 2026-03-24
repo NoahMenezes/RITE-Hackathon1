@@ -8,7 +8,21 @@ import ShineBorder from "../components/ShineBorder";
 import { cn } from "../../lib/utils";
 import { AnimatedList } from "../components/AnimatedList";
 
-const Notification = ({ name, description, icon, color, time }: any) => {
+interface NotificationProps {
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  time: string;
+}
+
+const Notification = ({
+  name,
+  description,
+  icon,
+  color,
+  time,
+}: NotificationProps) => {
   return (
     <figure
       className={cn(
@@ -39,7 +53,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const { user, loading } = useUser();
   const [updating, setUpdating] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationProps[]>([]);
 
   // Form fields
   const [fullName, setFullName] = useState("");
@@ -101,11 +115,12 @@ export default function ProfilePage() {
         ]);
         setPassword(""); // clear password field
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setNotifications([
         {
           name: "Update Failed",
-          description: err.message || "Failed to modify identity records.",
+          description:
+            (err as Error).message || "Failed to modify identity records.",
           time: "Error",
           icon: "❌",
           color: "#ef4444",

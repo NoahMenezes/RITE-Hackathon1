@@ -8,7 +8,21 @@ import { AnimatedList } from "../components/AnimatedList";
 import { cn } from "../../lib/utils";
 import { sendAuthNotification } from "../actions/auth-emails";
 
-const Notification = ({ name, description, icon, color, time }: any) => {
+interface NotificationProps {
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  time: string;
+}
+
+const Notification = ({
+  name,
+  description,
+  icon,
+  color,
+  time,
+}: NotificationProps) => {
   return (
     <figure
       className={cn(
@@ -40,7 +54,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationProps[]>([]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();

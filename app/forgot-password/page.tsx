@@ -8,7 +8,21 @@ import { AnimatedList } from "../components/AnimatedList";
 import { cn } from "../../lib/utils";
 import { sendAuthNotification } from "../actions/auth-emails";
 
-const Notification = ({ name, description, icon, color, time }: any) => {
+interface NotificationProps {
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  time: string;
+}
+
+const Notification = ({
+  name,
+  description,
+  icon,
+  color,
+  time,
+}: NotificationProps) => {
   return (
     <figure
       className={cn(
@@ -38,7 +52,7 @@ const Notification = ({ name, description, icon, color, time }: any) => {
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationProps[]>([]);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();

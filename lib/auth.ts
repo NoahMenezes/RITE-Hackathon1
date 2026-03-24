@@ -6,6 +6,11 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "your-secret-key",
 );
 
+interface UserPayload {
+  userId: number;
+  email: string;
+}
+
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);
 }
@@ -17,7 +22,7 @@ export async function comparePassword(
   return bcrypt.compare(password, hash);
 }
 
-export async function signToken(payload: any): Promise<string> {
+export async function signToken(payload: UserPayload): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -25,11 +30,11 @@ export async function signToken(payload: any): Promise<string> {
     .sign(JWT_SECRET);
 }
 
-export async function verifyToken(token: string): Promise<any> {
+export async function verifyToken(token: string): Promise<UserPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload;
-  } catch (error) {
+    return payload as UserPayload;
+  } catch {
     return null;
   }
 }
