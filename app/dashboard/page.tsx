@@ -5,14 +5,43 @@ import { useRouter } from "next/navigation";
 import { useUser } from "../../lib/useUser";
 import Footer from "../components/Footer";
 import ShineBorder from "../components/ShineBorder";
-import { getScheduledTasks } from "../actions/tasks";
-import { Play } from "lucide-react";
+import { getScheduledTasks, seedDemoData } from "../actions/tasks";
+import { Play, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+
+function TaskSkeleton() {
+  return (
+    <div className="relative p-6 border border-zinc-800 bg-zinc-900/50 flex flex-col md:flex-row md:justify-between md:items-center gap-4 animate-pulse">
+      <div className="absolute w-3 h-3 bg-zinc-700 rounded-full -left-[39px] top-1/2 -translate-y-1/2 ring-4 ring-zinc-950" />
+      <div className="flex-1">
+        <div className="h-4 bg-zinc-700 rounded mb-2 w-3/4"></div>
+        <div className="h-3 bg-zinc-700 rounded w-1/2"></div>
+      </div>
+      <div className="flex items-center gap-4 self-start md:self-auto">
+        <div className="h-6 bg-zinc-700 rounded w-16"></div>
+        <div className="w-8 h-8 bg-zinc-700 rounded-full"></div>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading } = useUser();
-  const [tasks, setTasks] = useState<Record<string, any>[]>([]);
+  const [tasks, setTasks] = useState<
+    Array<{
+      id: number;
+      user_id: number;
+      title: string;
+      type: string;
+      status: string;
+      scheduled_for: string | null;
+      duration_mins: number | null;
+      created_at: string;
+    }>
+  >([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
+  const [seedingDemo, setSeedingDemo] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -22,6 +51,27 @@ export default function DashboardPage() {
       });
     }
   }, [user]);
+
+  const handleSeedDemo = async () => {
+    if (!user) return;
+
+    setSeedingDemo(true);
+    try {
+      const result = await seedDemoData(user.id.toString());
+      if (result.success) {
+        toast.success("Demo data loaded! Check out your new schedule.");
+        // Refresh tasks
+        const res = await getScheduledTasks(user.id.toString());
+        if (res.success && res.tasks) setTasks(res.tasks);
+      } else {
+        toast.error(`Failed to load demo data: ${result.error}`);
+      }
+    } catch (error) {
+      toast.error("Failed to load demo data");
+    } finally {
+      setSeedingDemo(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -64,7 +114,11 @@ export default function DashboardPage() {
 
             <div className="flex flex-col gap-6 w-full">
               {loadingTasks ? (
-                <p className="text-zinc-500 font-bold">Syncing Schedule...</p>
+                <div className="relative border-l-2 border-zinc-800 ml-4 pl-8 space-y-6">
+                  {[...Array(3)].map((_, i) => (
+                    <TaskSkeleton key={i} />
+                  ))}
+                </div>
               ) : tasks.length === 0 ? (
                 <p className="text-zinc-500 font-bold">
                   No tasks scheduled for today. Ask TaskPilot to schedule
@@ -122,12 +176,22 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-            <button
-              className="mt-8 w-full p-6 bg-zinc-900 hover:bg-blue-600 border border-zinc-800 hover:border-blue-500 text-white font-black text-lg transition-all shadow-lg hover:shadow-blue-500/20 rounded-none"
-              onClick={() => router.push("/dashboard/chat")}
-            >
-              Launch FocusFlow Chat
-            </button>
+            <div className="flex gap-4 mt-8">
+              <button
+                onClick={handleSeedDemo}
+                disabled={seedingDemo}
+                className="flex-1 p-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 border border-purple-500/50 text-white font-black text-sm transition-all shadow-lg hover:shadow-purple-500/20 rounded-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                {seedingDemo ? "Loading Demo..." : "Load Demo Data"}
+              </button>
+              <button
+                className="flex-1 p-4 bg-zinc-900 hover:bg-blue-600 border border-zinc-800 hover:border-blue-500 text-white font-black text-sm transition-all shadow-lg hover:shadow-blue-500/20 rounded-none"
+                onClick={() => router.push("/dashboard/chat")}
+              >
+                Launch FocusFlow Chat
+              </button>
+            </div>
           </div>
         </ShineBorder>
       </main>
