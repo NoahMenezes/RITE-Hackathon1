@@ -1,3 +1,5 @@
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
 import { createClient } from "@libsql/client";
 const db = createClient({
   url: "libsql://productivity-noahmenezes.aws-ap-south-1.turso.io",

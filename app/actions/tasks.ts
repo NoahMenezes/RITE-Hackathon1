@@ -228,15 +228,15 @@ export async function seedDemoData(userId: string) {
       },
     ];
 
-    // Clear existing tasks first
-    await db.execute({
-      sql: "DELETE FROM tasks WHERE user_id = ?",
-      args: [parseInt(userId)],
-    });
+    const statements: any[] = [
+      {
+        sql: "DELETE FROM tasks WHERE user_id = ?",
+        args: [parseInt(userId)],
+      },
+    ];
 
-    // Insert demo tasks
     for (const task of demoTasks) {
-      await db.execute({
+      statements.push({
         sql: `INSERT INTO tasks (user_id, title, type, status, scheduled_for, duration_mins)
               VALUES (?, ?, ?, ?, ?, ?)`,
         args: [
@@ -249,6 +249,8 @@ export async function seedDemoData(userId: string) {
         ],
       });
     }
+
+    await db.batch(statements, "write");
 
     revalidatePath("/dashboard");
     return { success: true, message: "Demo data seeded successfully!" };
