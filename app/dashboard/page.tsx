@@ -250,7 +250,7 @@ export default function DashboardPage() {
           borderWidth={1.5}
           color={["#3b82f6", "#6366f1", "#8b5cf6"]}
           duration={10}
-          className="w-full max-w-4xl !bg-zinc-950/80 !backdrop-blur-3xl !border-zinc-900 shadow-2xl p-0"
+          className="w-full max-w-6xl !bg-zinc-950/80 !backdrop-blur-3xl !border-zinc-900 shadow-2xl p-0"
         >
           <div className="p-12 md:p-24 space-y-12 w-full">
             {/* Analytics Section */}
