@@ -7,11 +7,11 @@ Team: Claim a task, mark it as in-progress (`[~]`), and check it off (`[x]`) whe
 - [x] **1.1 Database Schema Setup (Turso)**
   - Create `tasks` table: `id`, `user_id`, `title`, `type` (automated, scheduled, quick), `status` (pending, completed), `scheduled_for`, `duration_mins`.
   - Create `chat_history` table: `id`, `user_id`, `message`, `role` (user, bot), `created_at`.
-- [ ] **1.2 Chat UI Component (`/app/dashboard/chat`)**
+- [x] **1.2 Chat UI Component (`/app/dashboard/chat`)**
   - Build a chat-like interface (similar to ChatGPT) using Framer Motion for smooth transitions.
   - Create an input box that handles 'Enter' to submit.
   - Display chat history dynamically.
-- [ ] **1.3 Basic Intent Parser (The "Brain")**
+- [x] **1.3 Basic Intent Parser (The "Brain")**
   - Create a utility function `parseIntent(input: string)` in `/lib/parser.ts`.
   - Implement keyword matching for MVP:
     - *Summarize/Generate/Write* -> Automation
