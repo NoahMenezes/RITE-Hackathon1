@@ -662,7 +662,7 @@ export default function ChatPage() {
           .match(/^([^\s]+)(?:\s+(.*))?$/);
         const emailAddress = match ? match[1] : "";
         const enquiry = match && match[2] ? match[2].trim() : "";
-        const messageText = enquiry ? `Hello , ${enquiry}` : "Hello , ";
+        const messageText = enquiry ? `HI , ${enquiry}` : "HI , ";
 
         setMessages((prev) => [
           ...prev,
@@ -691,7 +691,7 @@ export default function ChatPage() {
           .match(/^([\d\s\+\-\(\)]+)(.*)$/);
         const number = match ? match[1].trim() : "";
         const enquiry = match && match[2] ? match[2].trim() : "";
-        const messageText = enquiry ? `Hello , ${enquiry}` : "Hello , ";
+        const messageText = enquiry ? `HI , ${enquiry}` : "HI , ";
 
         setMessages((prev) => [
           ...prev,
