@@ -180,3 +180,81 @@ export async function autoScheduleTask(
     return { success: false, error: message };
   }
 }
+
+export async function seedDemoData(userId: string) {
+  try {
+    const now = new Date();
+    const demoTasks = [
+      {
+        title: "Morning Standup Meeting",
+        type: "scheduled" as const,
+        status: "pending" as const,
+        scheduledFor: new Date(
+          now.getTime() + 2 * 60 * 60 * 1000,
+        ).toISOString(), // 2 hours from now
+        durationMins: 30,
+      },
+      {
+        title: "Study Operating Systems",
+        type: "scheduled" as const,
+        status: "pending" as const,
+        scheduledFor: new Date(
+          now.getTime() + 4 * 60 * 60 * 1000,
+        ).toISOString(), // 4 hours from now
+        durationMins: 25,
+      },
+      {
+        title: "Review Pull Request",
+        type: "scheduled" as const,
+        status: "pending" as const,
+        scheduledFor: new Date(
+          now.getTime() + 6 * 60 * 60 * 1000,
+        ).toISOString(), // 6 hours from now
+        durationMins: 45,
+      },
+      {
+        title: "Quick email replies",
+        type: "quick" as const,
+        status: "pending" as const,
+        scheduledFor: null,
+        durationMins: 15,
+      },
+      {
+        title: "Call client about project update",
+        type: "quick" as const,
+        status: "pending" as const,
+        scheduledFor: null,
+        durationMins: 10,
+      },
+    ];
+
+    // Clear existing tasks first
+    await db.execute({
+      sql: "DELETE FROM tasks WHERE user_id = ?",
+      args: [parseInt(userId)],
+    });
+
+    // Insert demo tasks
+    for (const task of demoTasks) {
+      await db.execute({
+        sql: `INSERT INTO tasks (user_id, title, type, status, scheduled_for, duration_mins)
+              VALUES (?, ?, ?, ?, ?, ?)`,
+        args: [
+          parseInt(userId),
+          task.title,
+          task.type,
+          task.status,
+          task.scheduledFor,
+          task.durationMins,
+        ],
+      });
+    }
+
+    revalidatePath("/dashboard");
+    return { success: true, message: "Demo data seeded successfully!" };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Failed to seed demo data:", error);
+    return { success: false, error: message };
+  }
+}
