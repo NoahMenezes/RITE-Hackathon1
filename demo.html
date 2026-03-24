@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>One‑Click AI Day</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <main>
+        <h1>One‑Click AI Day</h1>
+        <p>Describe your day in one line:</p>
+        <textarea id="userInput" rows="3"
+            placeholder="study graph theory for 2 hours, reply to 10 emails, walk for 30 mins"></textarea>
+        <button id="planBtn">Plan my day</button>
+
+        <section id="schedule"></section>
+
+        <section id="timerView" class="hidden">
+            <div id="timer">25:00</div>
+            <div class="progress">
+                <div id="progressBar"></div>
+            </div>
+            <button id="stopTimer">Stop</button>
+            <button id="doneBtn" class="hidden">Done</button>
+        </section>
+
+        <section id="recap">
+            <h2>Today recap</h2>
+            <p>Scheduled tasks: <span id="scheduledCount">0</span></p>
+            <p>Completed tasks: <span id="completedCount">0</span></p>
+            <p>Pomodoro sessions: <span id="pomodoroCount">0</span></p>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
