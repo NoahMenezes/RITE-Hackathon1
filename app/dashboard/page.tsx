@@ -45,7 +45,7 @@ export default function DashboardPage() {
           borderWidth={2}
           color={["#10b981", "#3b82f6", "#10b981"]}
           duration={10}
-          className="w-full max-w-4xl !bg-zinc-950/80 !backdrop-blur-3xl !border-zinc-900 shadow-2xl p-0"
+          className="w-full max-w-4xl bg-zinc-950/80! backdrop-blur-3xl! border-zinc-900! shadow-2xl p-0"
         >
           <div className="p-24 space-y-12">
             <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8">

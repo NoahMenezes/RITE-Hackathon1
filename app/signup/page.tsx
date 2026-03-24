@@ -26,7 +26,7 @@ const Notification = ({
   return (
     <figure
       className={cn(
-        "relative mx-auto min-h-fit w-full max-w-[400px] cursor-pointer overflow-hidden p-6",
+        "relative mx-auto min-h-fit w-full max-w-100 cursor-pointer overflow-hidden p-6",
         "transition-all duration-300 ease-in-out hover:scale-[103%]",
         "bg-zinc-950/90 backdrop-blur-2xl border border-zinc-800 shadow-2xl flex flex-row items-center gap-6",
       )}
@@ -109,7 +109,7 @@ export default function SignupPage() {
       <Navbar />
 
       {notifications.length > 0 && (
-        <div className="fixed top-32 left-1/2 -translate-x-1/2 w-full max-w-[450px] z-[200]">
+        <div className="fixed top-32 left-1/2 -translate-x-1/2 w-full max-w-112.5 z-200">
           <AnimatedList delay={100}>
             {notifications.map((n, i) => (
               <Notification key={i} {...n} />
@@ -124,7 +124,7 @@ export default function SignupPage() {
           borderWidth={2}
           color={["#ef4444", "#f59e0b", "#ef4444"]}
           duration={8}
-          className="w-full max-w-2xl !bg-zinc-950/80 !backdrop-blur-3xl !border-zinc-900 shadow-2xl p-0"
+          className="w-full max-w-2xl bg-zinc-950/80! backdrop-blur-3xl! border-zinc-900! shadow-2xl p-0"
         >
           <div className="p-24 space-y-16">
             <h1 className="text-3xl font-black text-white leading-[1.1]">

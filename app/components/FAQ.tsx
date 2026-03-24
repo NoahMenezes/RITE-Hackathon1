@@ -38,7 +38,7 @@ export default function FAQ() {
 
             <div className="grid md:grid-cols-2 gap-24">
                 {faqs.map((faq, i) => (
-                    <ShineBorder key={i} borderRadius={0} borderWidth={1} color={["#A07CFE", "#FE8FB5", "#FFBE7B"]} duration={12} className="w-full !p-0 !bg-zinc-950/40 !backdrop-blur-3xl !border-zinc-900 group transition-all hover:!bg-zinc-900/60 min-h-[500px]">
+                    <ShineBorder key={i} borderRadius={0} borderWidth={1} color={["#A07CFE", "#FE8FB5", "#FFBE7B"]} duration={12} className="w-full p-0! bg-zinc-950/40! backdrop-blur-3xl! border-zinc-900! group transition-all hover:bg-zinc-900/60! min-h-125">
                         <div className="p-20 h-full flex flex-col justify-start relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-8 text-white font-black text-3xl opacity-5 group-hover:opacity-10 transition-opacity select-none whitespace-nowrap">Q0{i + 1}</div>
                             <div className="space-y-12 h-full flex flex-col justify-center">

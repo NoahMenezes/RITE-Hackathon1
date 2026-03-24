@@ -163,7 +163,7 @@ export default function ChatPage() {
                 className={`group relative max-w-[80%] rounded-2xl px-5 py-3 text-sm shadow-sm ${msg.role === "user"
                     ? "bg-blue-600 text-white rounded-tr-sm"
                     : msg.isQuickBurst
-                      ? "bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-900/20 border border-blue-100 dark:border-blue-900/50 text-gray-800 dark:text-gray-200 rounded-tl-sm"
+                      ? "bg-linear-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-900/20 border border-blue-100 dark:border-blue-900/50 text-gray-800 dark:text-gray-200 rounded-tl-sm"
                       : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-sm"
                   }`}
               >
