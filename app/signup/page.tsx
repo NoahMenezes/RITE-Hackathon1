@@ -12,7 +12,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
@@ -37,7 +36,7 @@ const Notification = ({
       className={cn(
         "relative mx-auto min-h-fit w-full max-w-[400px] cursor-pointer overflow-hidden rounded-lg p-4",
         "transition-all duration-300 ease-in-out hover:scale-[103%]",
-        "bg-background border shadow-lg flex flex-row items-center gap-4"
+        "bg-background border shadow-lg flex flex-row items-center gap-4",
       )}
     >
       <div
@@ -107,7 +106,7 @@ export default function SignupPage() {
         },
       ]);
       alert(
-        "Identity Established: Welcome to FocusFlow! We've sent you two emails—one to verify your account and another confirmed your identity has been established."
+        "Identity Established: Welcome to FocusFlow! We've sent you two emails—one to verify your account and another confirmed your identity has been established.",
       );
       window.location.href = "/dashboard";
     }
@@ -135,7 +134,7 @@ export default function SignupPage() {
               Enter your information to create an account
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleSignup}>
               <div className="grid gap-4">

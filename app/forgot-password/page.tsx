@@ -12,7 +12,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
@@ -37,7 +36,7 @@ const Notification = ({
       className={cn(
         "relative mx-auto min-h-fit w-full max-w-[400px] cursor-pointer overflow-hidden rounded-lg p-4",
         "transition-all duration-300 ease-in-out hover:scale-[103%]",
-        "bg-background border shadow-lg flex flex-row items-center gap-4"
+        "bg-background border shadow-lg flex flex-row items-center gap-4",
       )}
     >
       <div
@@ -103,10 +102,11 @@ export default function ForgotPasswordPage() {
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Reset password</CardTitle>
             <CardDescription>
-              Enter your email address and we will send you a link to reset your password.
+              Enter your email address and we will send you a link to reset your
+              password.
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <form onSubmit={handleReset}>
               <div className="grid gap-6">
