@@ -71,6 +71,12 @@ export default function DashboardPage() {
     }
   };
 
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-transparent text-white flex items-center justify-center font-black text-base">
@@ -80,7 +86,6 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    router.push("/login");
     return null;
   }
 
