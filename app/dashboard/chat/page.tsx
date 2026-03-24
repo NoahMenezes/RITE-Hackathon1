@@ -1157,7 +1157,7 @@ export default function ChatPage() {
                           : "",
                       )}
                     >
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: ({ node: _, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" /> }}>
                         {msg.text}
                       </ReactMarkdown>
                     </div>
