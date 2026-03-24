@@ -6,9 +6,10 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "your-secret-key",
 );
 
-interface UserPayload extends JWTPayload {
+export interface UserPayload extends JWTPayload {
   userId: number;
   email: string;
+  name?: string;
 }
 
 export async function hashPassword(password: string): Promise<string> {

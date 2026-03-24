@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken, findUserByEmail } from "../../../../lib/auth";
+import { verifyToken } from "../../../../lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,13 +13,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ user: null });
     }
 
-    const user = await findUserByEmail(payload.email);
-    if (!user) {
-      return NextResponse.json({ user: null });
-    }
-
     return NextResponse.json({
-      user: { id: user.id as number, email: user.email as string, name: user.name as string },
+      user: {
+        id: payload.userId,
+        email: payload.email,
+        name: payload.name || "",
+      },
     });
   } catch (error) {
     console.error("Me error:", error);
