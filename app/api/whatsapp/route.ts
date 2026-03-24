@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import path from "path";
 import util from "util";
 
-const execPromise = util.promisify(exec);
+const execFilePromise = util.promisify(execFile);
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { number } = body;
+    const { number, message } = body;
 
     if (!number) {
       return NextResponse.json(
@@ -30,12 +30,18 @@ export async function POST(req: Request) {
     // Resolve the path to the Python script
     const scriptPath = path.join(process.cwd(), "scripts", "whatsapp.py");
 
+    // Ensure we don't accidentally execute arbitrary code by passing raw user input
+    // using execFile and passing arguments securely
+    const args = [scriptPath, cleanNumber];
+    if (message) {
+      args.push(message);
+    }
+
     // Execute the Python script
     // Using python3, which is standard on most Linux/Mac systems
-    const { stdout, stderr } = await execPromise(
-      `python3 ${scriptPath} ${cleanNumber}`,
-      { env: process.env },
-    );
+    const { stdout, stderr } = await execFilePromise("python3", args, {
+      env: process.env,
+    });
 
     console.log("WhatsApp automation output:", stdout);
     if (stderr) {

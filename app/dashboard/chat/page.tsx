@@ -656,7 +656,14 @@ export default function ChatPage() {
 
     try {
       if (intent === "email") {
-        const emailAddress = userText.replace(/i?email /i, "").trim();
+        const match = userText
+          .replace(/i?email /i, "")
+          .trim()
+          .match(/^([^\s]+)(?:\s+(.*))?$/);
+        const emailAddress = match ? match[1] : "";
+        const enquiry = match && match[2] ? match[2].trim() : "";
+        const messageText = enquiry ? `Hello , ${enquiry}` : "Hello , ";
+
         setMessages((prev) => [
           ...prev,
           {
@@ -669,7 +676,7 @@ export default function ChatPage() {
         try {
           await fetch("/api/email", {
             method: "POST",
-            body: JSON.stringify({ email: emailAddress }),
+            body: JSON.stringify({ email: emailAddress, message: messageText }),
           });
         } catch (_) {}
 
@@ -678,7 +685,14 @@ export default function ChatPage() {
       }
 
       if (intent === "whatsapp") {
-        const number = userText.replace(/i?message on /i, "").trim();
+        const match = userText
+          .replace(/i?message on /i, "")
+          .trim()
+          .match(/^([\d\s\+\-\(\)]+)(.*)$/);
+        const number = match ? match[1].trim() : "";
+        const enquiry = match && match[2] ? match[2].trim() : "";
+        const messageText = enquiry ? `Hello , ${enquiry}` : "Hello , ";
+
         setMessages((prev) => [
           ...prev,
           {
@@ -691,7 +705,7 @@ export default function ChatPage() {
         try {
           await fetch("/api/whatsapp", {
             method: "POST",
-            body: JSON.stringify({ number }),
+            body: JSON.stringify({ number, message: messageText }),
           });
         } catch (_) {}
 

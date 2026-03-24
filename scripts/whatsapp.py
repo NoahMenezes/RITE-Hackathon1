@@ -45,7 +45,10 @@ def open_whatsapp_chat(
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         target_number = sys.argv[1]
-        open_whatsapp_chat(target_number)
+        if len(sys.argv) > 2:
+            open_whatsapp_chat(target_number, sys.argv[2])
+        else:
+            open_whatsapp_chat(target_number)
     else:
         print("Error: No phone number provided.")
-        print("Usage: python whatsapp.py <phone_number>")
+        print("Usage: python whatsapp.py <phone_number> [message]")

@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import path from "path";
 import util from "util";
 
-const execPromise = util.promisify(exec);
+const execFilePromise = util.promisify(execFile);
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email } = body;
+    const { email, message } = body;
 
     if (!email) {
       return NextResponse.json(
@@ -28,14 +28,22 @@ export async function POST(req: Request) {
     }
 
     // Resolve the path to the Python script
-    const scriptPath = path.join(process.cwd(), "scripts", "email_automation.py");
+    const scriptPath = path.join(
+      process.cwd(),
+      "scripts",
+      "email_automation.py",
+    );
+
+    const args = [scriptPath, cleanEmail];
+    if (message) {
+      args.push(message);
+    }
 
     // Execute the Python script
     // Using python3, which is standard on most Linux/Mac systems
-    const { stdout, stderr } = await execPromise(
-      `python3 ${scriptPath} "${cleanEmail}"`,
-      { env: process.env },
-    );
+    const { stdout, stderr } = await execFilePromise("python3", args, {
+      env: process.env,
+    });
 
     console.log("Email automation output:", stdout);
     if (stderr) {
