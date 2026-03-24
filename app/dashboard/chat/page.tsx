@@ -662,14 +662,41 @@ export default function ChatPage() {
           .match(/^([^\s]+)(?:\s+(.*))?$/);
         const emailAddress = match ? match[1] : "";
         const enquiry = match && match[2] ? match[2].trim() : "";
-        const messageText = enquiry ? `HI , ${enquiry}` : "HI , ";
+
+        if (!emailAddress || !emailAddress.includes("@")) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `📧 **Who would you like to email?**\n\nPlease provide a valid email address. For example: *"Email john@example.com about the project meeting"*`,
+            },
+          ]);
+          setIsTyping(false);
+          return;
+        }
+
+        if (!enquiry) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `📧 **What would you like to say?**\n\nPlease provide the content for your email to **${emailAddress}**. For example: *"Email ${emailAddress} Let's review the code tomorrow"*`,
+            },
+          ]);
+          setIsTyping(false);
+          return;
+        }
+
+        const messageText = `Hi, ${enquiry}`;
 
         setMessages((prev) => [
           ...prev,
           {
             id: (Date.now() + 1).toString(),
             role: "bot",
-            text: `📧 **Email Automation Initiated!**\n\nOpening Gmail to compose an email to **${emailAddress}**...`,
+            text: `📧 **Email Automation Initiated!**\n\nOpening Gmail to compose your email to **${emailAddress}**...`,
           },
         ]);
 
@@ -686,19 +713,48 @@ export default function ChatPage() {
 
       if (intent === "whatsapp") {
         const match = userText
+          .replace(/i?message on whatsapp to /i, "")
+          .replace(/i?message on whatsapp /i, "")
           .replace(/i?message on /i, "")
           .trim()
           .match(/^([\d\s\+\-\(\)]+)(.*)$/);
         const number = match ? match[1].trim() : "";
         const enquiry = match && match[2] ? match[2].trim() : "";
-        const messageText = enquiry ? `HI , ${enquiry}` : "HI , ";
+
+        if (!number || number.length < 5) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `📱 **Who would you like to message?**\n\nPlease provide a valid phone number. For example: *"Message on WhatsApp +1234567890 Hello there!"*`,
+            },
+          ]);
+          setIsTyping(false);
+          return;
+        }
+
+        if (!enquiry) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              role: "bot",
+              text: `📱 **What would you like to say?**\n\nPlease provide the message content you want to send to **${number}**. For example: *"Message on WhatsApp ${number} Let's catch up later!"*`,
+            },
+          ]);
+          setIsTyping(false);
+          return;
+        }
+
+        const messageText = `Hi, ${enquiry}`;
 
         setMessages((prev) => [
           ...prev,
           {
             id: (Date.now() + 1).toString(),
             role: "bot",
-            text: `📱 **WhatsApp Automation Initiated!**\n\nOpening WhatsApp to message **${number}**...`,
+            text: `📱 **WhatsApp Automation Initiated!**\n\nOpening WhatsApp to send your message to **${number}**...`,
           },
         ]);
 
@@ -859,28 +915,6 @@ export default function ChatPage() {
         }
       }
 
-      if (intent === "unknown") {
-        let unknownText;
-        if (detectExhaustion(userText)) {
-          unknownText =
-            "🤔 **You seem tired or overwhelmed.** Would you like me to help reduce your burden today? I can suggest removing low-priority tasks or rescheduling some items.";
-        } else {
-          unknownText = `🤔 **I didn't quite catch that!**\n\nI can help you with:\n\n• **Scheduling tasks**: "Study OS", "Work on project", "Meeting with team"\n• **Quick tasks**: "Call mom", "Reply to email", "Quick review"\n• **Automation**: "Summarize this text", "Generate ideas", "Write a draft"\n• **Focus mode**: "Start studying", "Begin focus session"\n• **Templates**: "Create template", "Use template"\n• **Habits**: "Track habit", "Complete habit"\n• **Recurring**: "Set recurring task"\n• **Prioritize**: "Prioritize tasks"\n• **Search**: "Search history"\n• **Export**: "Export data"\n\nWhat would you like to get done?`;
-        }
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 2).toString(),
-            role: "bot",
-            text: unknownText,
-            intent: "unknown",
-          },
-        ]);
-        setIsTyping(false);
-        return;
-      }
-
       // 2.1 LLM Integration via API with enhanced context
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -904,7 +938,8 @@ export default function ChatPage() {
       const data = await response.json();
 
       let botText =
-        data.text || "I'm having trouble connecting to my brain right now...";
+        data.text ||
+        (data.error ? `Error: ${data.error}` : "I'm having trouble connecting to my brain right now...");
 
       // Check for exhaustion and add suggestion for non-unknown intents
       if (detectExhaustion(userText)) {
@@ -1025,6 +1060,7 @@ export default function ChatPage() {
           }));
 
           setChatHistory(historyMessages);
+          setMessages((prev) => (prev.length === 1 ? [...prev, ...historyMessages] : prev));
         }
       });
     }
@@ -1124,7 +1160,7 @@ export default function ChatPage() {
                   >
                     <div
                       className={cn(
-                        "prose prose-sm md:prose-base max-w-none text-[#ECECEC] prose-p:leading-relaxed prose-strong:text-white prose-code:text-[#ECECEC] prose-pre:bg-[#000000] prose-pre:border prose-pre:border-[#333333] prose-li:text-[#ECECEC] prose-headings:text-white",
+                        "prose prose-sm md:prose-base max-w-none text-[#ECECEC] prose-p:leading-relaxed prose-strong:text-white prose-code:text-[#ECECEC] prose-pre:bg-[#000000] prose-pre:border prose-pre:border-[#333333] prose-li:text-[#ECECEC] prose-headings:text-white prose-a:text-sky-400 hover:prose-a:text-sky-300",
                         msg.role === "user"
                           ? "bg-[#2f2f2f] px-5 py-2.5 rounded-3xl"
                           : "",
