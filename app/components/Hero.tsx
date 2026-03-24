@@ -3,10 +3,10 @@ export default function Hero() {
         <section className="relative w-full h-[100vh] flex flex-col items-center justify-center overflow-hidden bg-transparent">
             {/* Local video removed; handled by RootLayout */}
             <div className="relative z-10 text-center max-w-5xl px-6 flex flex-col items-center animate-fade-in-up">
-                <h1 className="text-7xl md:text-9xl font-black tracking-tightest leading-[1.1] mb-8 drop-shadow-[0_20px_50px_rgba(0,0,0,1)]">
-                    FLOW <span className="text-white">THROUGH</span> THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">CHAOS.</span>
+                <h1 className="text-7xl md:text-9xl font-black tracking-tightest leading-[1.1] mb-8 drop-shadow-[0_20px_50px_rgba(0,0,0,1)] text-white">
+                    FLOW THROUGH THE <span className="uppercase text-white">CHAOS.</span>
                 </h1>
-                <p className="text-2xl md:text-3xl text-zinc-100 max-w-3xl mx-auto leading-relaxed font-black mb-12 drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] uppercase tracking-tighter">
+                <p className="text-2xl md:text-3xl text-zinc-100 max-w-3xl mx-auto leading-relaxed font-black mb-12 drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] uppercase tracking-tighter transition-all hover:text-blue-500 duration-1000">
                     Experience the ultimate productivity suite that adapts to your mental frequency. Minimalist, powerful, and built for builders who demand perfection.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-6">
