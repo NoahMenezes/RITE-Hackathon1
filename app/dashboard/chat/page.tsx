@@ -3,7 +3,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, User, Copy, Play, Paperclip } from "lucide-react";
+import {
+  Send,
+  Bot,
+  User,
+  Copy,
+  Play,
+  Paperclip,
+  Trash2,
+  Calendar,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 // Simple intent parsing without AI
@@ -50,6 +59,8 @@ import {
   getScheduledTasks,
   saveChatMessage,
   getChatHistory,
+  deleteTask,
+  getTasksByDate,
 } from "../../actions/tasks";
 import { useUser } from "../../../lib/useUser";
 import { toast } from "sonner";
@@ -123,44 +134,23 @@ function parseDuration(text: string): number | null {
   // Default to 25 if no duration found
   return null;
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getProactiveSuggestions(currentTasks: Task[]): string[] {
-  const now = new Date();
-  const hour = now.getHours();
-  const suggestions: string[] = [];
 
-  // Time-based suggestions
-  if (hour >= 9 && hour <= 11) {
-    suggestions.push("Start my morning routine");
-  } else if (hour >= 12 && hour <= 14) {
-    suggestions.push("Schedule lunch break");
-  } else if (hour >= 17 && hour <= 19) {
-    suggestions.push("Plan tomorrow's tasks");
-  }
-
-  // Task-based suggestions
-  const pendingTasks = currentTasks.filter((task) => task.status === "pending");
-  if (pendingTasks.length > 0) {
-    suggestions.push("Start next scheduled task");
-  }
-
-  const completedTasks = currentTasks.filter(
-    (task) => task.status === "completed",
-  );
-  if (completedTasks.length > 0 && pendingTasks.length === 0) {
-    suggestions.push("Review completed tasks");
-  }
-
-  // Default helpful suggestions
-  if (suggestions.length < 3) {
-    suggestions.push(
-      "Summarize my day",
-      "Create a focus session",
-      "Check my schedule",
-    );
-  }
-
-  return suggestions.slice(0, 4); // Limit to 4 suggestions
+// Helper function to detect signs of exhaustion in user text
+function detectExhaustion(text: string): boolean {
+  const exhaustionWords = [
+    "tired",
+    "exhausted",
+    "overwhelmed",
+    "burnt out",
+    "stressed",
+    "fatigued",
+    "drained",
+    "weary",
+    "worn out",
+    "run down",
+  ];
+  const lowerText = text.toLowerCase();
+  return exhaustionWords.some((word) => lowerText.includes(word));
 }
 
 type Message = {
@@ -183,8 +173,6 @@ export default function ChatPage() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [quickTaskBuffer, setQuickTaskBuffer] = useState<string[]>([]);
   const [currentTasks, setCurrentTasks] = useState<Task[]>([]);
   const [notifications, setNotifications] = useState<NotificationProps[]>([]);
@@ -195,12 +183,42 @@ export default function ChatPage() {
     title: string;
     duration: number;
   } | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [calendarTasks, setCalendarTasks] = useState<Task[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const handleDeleteTask = async (taskId: number) => {
+    if (!user) return;
+    const result = await deleteTask(taskId.toString());
+    if (result.success) {
+      setCurrentTasks((prev) => prev.filter((t) => t.id !== taskId));
+      toast.success("Task deleted successfully");
+    } else {
+      toast.error("Failed to delete task");
+    }
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const date = new Date(e.target.value);
+    setSelectedDate(date);
+  };
+
+  useEffect(() => {
+    if (user && selectedDate) {
+      const dateStr = selectedDate.toISOString().split("T")[0];
+      getTasksByDate(user.id.toString(), dateStr).then((res) => {
+        if (res.success && res.tasks) {
+          setCalendarTasks(res.tasks);
+        }
+      });
+    }
+  }, [selectedDate, user]);
 
   useEffect(() => {
     scrollToBottom();
@@ -238,11 +256,9 @@ export default function ChatPage() {
     }
   }, [user, chatHistory.length]);
 
-  const copyToClipboard = (text: string, id: string) => {
+  const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    setCopiedId(id);
     toast.success("Copied to clipboard");
-    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -273,7 +289,11 @@ export default function ChatPage() {
     if (!userText.trim()) return;
 
     // Handle pending Pomodoro choice
-    if (pendingPomodoro && user) {
+    if (pendingPomodoro) {
+      if (!user) {
+        toast.error("User not authenticated");
+        return;
+      }
       const lowerText = userText.toLowerCase();
       if (lowerText.includes("yes") || lowerText.includes("pomodoro")) {
         // Use Pomodoro
@@ -423,7 +443,11 @@ export default function ChatPage() {
         return;
       }
 
-      if (intent === "focus" && user) {
+      if (intent === "focus") {
+        if (!user) {
+          toast.error("User not authenticated");
+          return;
+        }
         if (duration > 60) {
           setPendingPomodoro({ title: userText, duration });
           setMessages((prev) => [
@@ -479,7 +503,11 @@ export default function ChatPage() {
         return;
       }
 
-      if (intent === "scheduled" && user) {
+      if (intent === "scheduled") {
+        if (!user) {
+          toast.error("User not authenticated");
+          return;
+        }
         if (duration > 60) {
           setPendingPomodoro({ title: userText, duration });
           setMessages((prev) => [
@@ -562,12 +590,20 @@ export default function ChatPage() {
       }
 
       if (intent === "unknown") {
+        let unknownText;
+        if (detectExhaustion(userText)) {
+          unknownText =
+            "🤔 **You seem tired or overwhelmed.** Would you like me to help reduce your burden today? I can suggest removing low-priority tasks or rescheduling some items.";
+        } else {
+          unknownText = `🤔 **I didn't quite catch that!**\n\nI can help you with:\n\n• **Scheduling tasks**: "Study OS", "Work on project", "Meeting with team"\n• **Quick tasks**: "Call mom", "Reply to email", "Quick review"\n• **Automation**: "Summarize this text", "Generate ideas", "Write a draft"\n• **Focus mode**: "Start studying", "Begin focus session"\n\nWhat would you like to get done?`;
+        }
+
         setMessages((prev) => [
           ...prev,
           {
             id: (Date.now() + 2).toString(),
             role: "bot",
-            text: `🤔 **I didn't quite catch that!**\n\nI can help you with:\n\n• **Scheduling tasks**: "Study OS", "Work on project", "Meeting with team"\n• **Quick tasks**: "Call mom", "Reply to email", "Quick review"\n• **Automation**: "Summarize this text", "Generate ideas", "Write a draft"\n• **Focus mode**: "Start studying", "Begin focus session"\n\nWhat would you like to get done?`,
+            text: unknownText,
             intent: "unknown",
           },
         ]);
@@ -597,11 +633,19 @@ export default function ChatPage() {
       });
       const data = await response.json();
 
+      let botText =
+        data.text || "I'm having trouble connecting to my brain right now...";
+
+      // Check for exhaustion and add suggestion for non-unknown intents
+      if (detectExhaustion(userText)) {
+        botText +=
+          "\n\n🤔 **You seem tired or overwhelmed.** Would you like me to help reduce your burden today? I can suggest removing low-priority tasks or rescheduling some items.";
+      }
+
       const botMessage: Message = {
         id: (Date.now() + 2).toString(),
         role: "bot",
-        text:
-          data.text || "I'm having trouble connecting to my brain right now...",
+        text: botText,
         intent,
       };
 
@@ -678,7 +722,9 @@ export default function ChatPage() {
             {chatHistory.map((msg) => (
               <div
                 key={msg.id}
-                className="mb-2 p-2 bg-[#2a2a2a] rounded text-sm text-zinc-300 hover:bg-[#333333] transition-colors cursor-pointer"
+                onClick={() => copyToClipboard(msg.text)}
+                className="mb-2 p-2 bg-[#1f1f1f] rounded text-sm text-zinc-300 hover:bg-[#2a2a2a] transition-colors cursor-pointer"
+                title="Click to copy message"
               >
                 <span className="font-bold">
                   {msg.role === "user" ? "You: " : "Bot: "}
@@ -733,7 +779,7 @@ export default function ChatPage() {
 
                     {msg.role === "bot" && (
                       <button
-                        onClick={() => copyToClipboard(msg.text, msg.id)}
+                        onClick={() => copyToClipboard(msg.text)}
                         className="absolute -bottom-8 left-0 p-1.5 opacity-0 group-hover:opacity-100 transition-all text-[#ececec] hover:text-white"
                         title="Copy to clipboard"
                       >
@@ -782,6 +828,14 @@ export default function ChatPage() {
               className="flex-1 bg-transparent text-base text-[#ECECEC] placeholder-[#9B9B9B] outline-none"
             />
             <motion.button
+              onClick={() => setShowCalendar(!showCalendar)}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-[#424242] hover:bg-[#565656] text-[#9b9b9b] hover:text-white transition-all duration-200 shrink-0 mr-2"
+              title="Toggle Calendar"
+            >
+              <Calendar className="w-4 h-4" />
+            </motion.button>
+            <motion.button
               onClick={handleFileButtonClick}
               whileTap={{ scale: 0.95 }}
               className="flex items-center justify-center w-8 h-8 rounded-full bg-[#424242] hover:bg-[#565656] text-[#9b9b9b] hover:text-white transition-all duration-200 shrink-0 mr-2"
@@ -820,70 +874,135 @@ export default function ChatPage() {
           </p>
         </div>
 
-        {/* Daily Plan Sidebar */}
-        <div className="w-80 bg-[#2f2f2f] border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
-          <div className="p-4">
-            <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8 mb-4">
-              Daily Plan
-            </h2>
-            {currentTasks.length === 0 ? (
-              <p className="text-zinc-400 text-sm">
-                No tasks scheduled for today. Ask FocusFlow to schedule
-                something!
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {currentTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="relative p-4 rounded-lg border border-white/5 bg-white/2 hover:bg-white/4 transition-all duration-300 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 group"
-                  >
-                    <div className="absolute w-3 h-3 bg-zinc-700 rounded-full -left-4.25 top-1/2 -translate-y-1/2 ring-4 ring-zinc-950 group-hover:bg-blue-500 transition-colors duration-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
-                    <div>
-                      <h3 className="text-lg font-bold text-zinc-100 mb-2 group-hover:text-white transition-colors">
-                        {task.title}
-                      </h3>
-                      <p className="text-zinc-400 text-sm font-medium flex items-center gap-2">
-                        <span className="text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md">
-                          {task.duration_mins} mins
-                        </span>
-                        <span className="text-zinc-600">•</span>
-                        <span className="text-zinc-300">
-                          {task.scheduled_for
-                            ? new Date(task.scheduled_for).toLocaleTimeString(
-                                [],
-                                { hour: "2-digit", minute: "2-digit" },
-                              )
-                            : "Unscheduled"}
-                        </span>
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4 self-start md:self-auto mt-2 md:mt-0">
-                      <div
-                        className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border ${task.status === "completed" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}
-                      >
-                        {task.status}
-                      </div>
-                      {task.status !== "completed" && (
-                        <button
-                          onClick={() =>
-                            router.push(
-                              `/dashboard/focus?taskId=${task.id}&title=${encodeURIComponent(task.title)}`,
-                            )
-                          }
-                          className="flex items-center justify-center p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-blue-500/25"
-                          title="Start Focus Mode"
-                        >
-                          <Play className="w-4 h-4 ml-0.5" />
-                        </button>
-                      )}
+        {/* Calendar Sidebar */}
+        {showCalendar && (
+          <div className="w-80 bg-[#2f2f2f] border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
+            <div className="p-4">
+              <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8 mb-4">
+                Calendar
+              </h2>
+              <input
+                type="date"
+                value={selectedDate.toISOString().split("T")[0]}
+                onChange={handleDateChange}
+                className="w-full p-2 bg-[#1f1f1f] text-white rounded"
+              />
+              <h3 className="text-md font-bold text-white mt-4 mb-2">
+                Tasks for {selectedDate.toDateString()}
+              </h3>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {Array.from({ length: 24 }, (_, hour) => (
+                  <div key={hour} className="flex items-center">
+                    <span className="text-xs text-zinc-400 w-12">
+                      {hour}:00
+                    </span>
+                    <div className="flex-1 h-6 bg-zinc-800 rounded relative">
+                      {calendarTasks
+                        .filter((task) => {
+                          if (!task.scheduled_for) return false;
+                          const taskDate = new Date(task.scheduled_for);
+                          return taskDate.getHours() === hour;
+                        })
+                        .map((task) => {
+                          const start = new Date(task.scheduled_for!);
+                          const startMin = start.getMinutes();
+                          const duration = task.duration_mins || 25;
+                          return (
+                            <div
+                              key={task.id}
+                              className="absolute top-0 h-full bg-blue-500 rounded text-xs text-white flex items-center px-1 truncate"
+                              style={{
+                                left: `${(startMin / 60) * 100}%`,
+                                width: `${(duration / 60) * 100}%`,
+                              }}
+                              title={`${task.title} (${duration} mins)`}
+                            >
+                              {task.title}
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
                 ))}
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Daily Plan Sidebar */}
+        {!showCalendar && (
+          <div className="w-80 bg-[#2f2f2f] border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
+            <div className="p-4">
+              <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8 mb-4">
+                Daily Plan
+              </h2>
+              {currentTasks.length === 0 ? (
+                <p className="text-zinc-400 text-sm">
+                  No tasks scheduled for today. Ask FocusFlow to schedule
+                  something!
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {currentTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="relative p-4 rounded-lg border border-white/5 bg-white/2 hover:bg-white/4 transition-all duration-300 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 group"
+                    >
+                      <div className="absolute w-3 h-3 bg-zinc-700 rounded-full -left-4.25 top-1/2 -translate-y-1/2 ring-4 ring-zinc-950 group-hover:bg-blue-500 transition-colors duration-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                      <div>
+                        <h3 className="text-lg font-bold text-zinc-100 mb-2 group-hover:text-white transition-colors">
+                          {task.title}
+                        </h3>
+                        <p className="text-zinc-400 text-sm font-medium flex items-center gap-2">
+                          <span className="text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md">
+                            {task.duration_mins} mins
+                          </span>
+                          <span className="text-zinc-600">•</span>
+                          <span className="text-zinc-300">
+                            {task.scheduled_for
+                              ? new Date(task.scheduled_for).toLocaleTimeString(
+                                  [],
+                                  { hour: "2-digit", minute: "2-digit" },
+                                )
+                              : "Unscheduled"}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-4 self-start md:self-auto mt-2 md:mt-0">
+                        <div
+                          className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border ${task.status === "completed" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20"}`}
+                        >
+                          {task.status}
+                        </div>
+                        {task.status !== "completed" ? (
+                          <button
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/focus?taskId=${task.id}&title=${encodeURIComponent(task.title)}`,
+                              )
+                            }
+                            className="flex items-center justify-center p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-blue-500/25"
+                            title="Start Focus Mode"
+                          >
+                            <Play className="w-4 h-4 ml-0.5" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleDeleteTask(task.id)}
+                            className="flex items-center justify-center p-2 bg-red-600 hover:bg-red-500 text-white rounded-full transition-all active:scale-95 shadow-lg shadow-red-500/25"
+                            title="Delete Task"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
