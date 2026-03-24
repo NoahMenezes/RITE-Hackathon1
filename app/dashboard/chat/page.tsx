@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, User, Copy, Check, Play, Paperclip } from "lucide-react";
+import { Send, Bot, User, Copy, Play, Paperclip } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 // Simple intent parsing without AI
@@ -116,6 +116,7 @@ function parseDuration(text: string): number | null {
   // Default to 25 if no duration found
   return null;
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getProactiveSuggestions(currentTasks: Task[]): string[] {
   const now = new Date();
   const hour = now.getHours();
@@ -175,6 +176,7 @@ export default function ChatPage() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [quickTaskBuffer, setQuickTaskBuffer] = useState<string[]>([]);
   const [currentTasks, setCurrentTasks] = useState<Task[]>([]);
@@ -657,7 +659,7 @@ export default function ChatPage() {
           </div>
         </div>
         {/* Main chat container — flex 1 */}
-        <div className="relative z-10 flex flex-col flex-1 w-full h-full max-w-4xl mx-auto">
+        <div className="relative z-10 flex flex-col flex-1 w-full h-full max-w-7xl mx-auto">
 
           {/* ── Messages Area ── */}
           <div className="flex-1 overflow-y-auto scrollbar-custom px-4 py-8 space-y-6 pb-24">
