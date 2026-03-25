@@ -929,7 +929,7 @@ export default function ChatPage() {
       {/* Full-viewport wrapper with background */}
       <div className="chat-root relative w-full h-[calc(100vh-4rem)] flex overflow-hidden bg-background">
         {/* Chat History Sidebar */}
-        <div className="w-64 bg-transparent border-r border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
+        <div className="w-64 shrink-0 bg-transparent border-r border-[#424242] flex flex-col overflow-y-auto scrollbar-custom hidden md:flex">
           <div className="p-4">
             <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-4 mb-4">
               Chat History
@@ -960,7 +960,7 @@ export default function ChatPage() {
           </div>
         </div>
         {/* Main chat container — flex 1 */}
-        <div className="relative z-10 flex flex-col flex-1 w-full h-full max-w-7xl mx-auto">
+        <div className="relative z-10 flex flex-col flex-1 min-w-0 h-full">
           {/* ── Messages Area ── */}
           <div className="flex-1 overflow-y-auto scrollbar-custom px-4 py-8 space-y-6 pb-24">
             <AnimatePresence initial={false}>
@@ -1048,8 +1048,8 @@ export default function ChatPage() {
         </div>
 
         {/* ── Input Area ── */}
-        <div className="fixed bottom-0 left-64 right-80 z-10 px-4 py-4 bg-background border-t border-[#424242]">
-          <div className="relative flex items-center gap-3 bg-[#2f2f2f] border border-[#424242] rounded-3xl px-4 py-3 shadow-sm focus-within:bg-[#383838]">
+        <div className="absolute bottom-0 left-0 right-0 z-10 px-4 py-4 bg-background border-t border-[#424242]">
+          <div className="relative flex items-center gap-3 bg-[#2f2f2f] border border-[#424242] rounded-3xl px-4 py-3 shadow-sm focus-within:bg-[#383838] max-w-4xl mx-auto">
             <input
               type="text"
               value={inputValue}
@@ -1124,7 +1124,7 @@ export default function ChatPage() {
 
         {/* Calendar Sidebar */}
         {showCalendar && (
-          <div className="w-80 bg-transparent border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
+          <div className="w-80 shrink-0 bg-transparent border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom hidden lg:flex">
             <div className="p-4">
               <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8 mb-4">
                 Calendar
@@ -1179,7 +1179,7 @@ export default function ChatPage() {
 
         {/* Daily Plan Sidebar */}
         {!showCalendar && (
-          <div className="w-80 bg-transparent border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
+          <div className="w-80 shrink-0 bg-transparent border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom hidden lg:flex">
             <div className="p-4">
               <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8 mb-4">
                 Daily Plan

@@ -46,7 +46,3 @@ This document outlines the high-impact features to add and the critical bugs to 
 1. On the frontend Dashboard where you list tasks, filter out all tasks where `type === 'quick'`.
 2. Map over them and render them inside a single cohesive UI card titled "⚡ 15-Minute Quick Task Burst".
 3. Add a single "Start Burst" button that just opens a 15-minute timer modal displaying those specific tasks.
-
-### 4. Calendar Conflict Resolution (Skip for now)
-**The Problem:** Gemini is bad at math and will double-book schedules.
-**The Fix for Hackathon:** Don't write complex collision-detection algorithms. The judges won't stress-test your calendar. Just ensure the bot replies confidently, and if you need to hardcode a "perfect schedule" for the live demo presentation, do it!

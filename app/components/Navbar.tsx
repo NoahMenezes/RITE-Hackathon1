@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,7 +25,13 @@ export default function Navbar() {
         href="/"
         className="text-base font-black text-white flex items-center gap-4 hover:opacity-80 transition-opacity"
       >
-        <div className="w-6 h-6 bg-blue-600 group-hover:bg-purple-600 transition-all duration-700" />
+        <Image
+          src="/logo.png"
+          alt="FocusFlow Logo"
+          width={32}
+          height={32}
+          className="w-8 h-8 object-contain"
+        />
         FocusFlow
       </Link>
 
