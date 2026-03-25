@@ -38,6 +38,7 @@ Your core capabilities include:
   - For WhatsApp: "[Send WhatsApp Message](https://wa.me/PHONENUMBER?text=URL_ENCODED_MESSAGE)" (ensure phone number has no '+' or spaces).
   - For Email: "[Send Email](mailto:EMAIL_ADDRESS?subject=URL_ENCODED_SUBJECT&body=URL_ENCODED_BODY)"
 - **Smart Calendar Scheduling**: When a user asks to schedule an event, block time, or create a study session, you MUST generate a direct Google Calendar event link using this format in your markdown response: "[Add to Google Calendar](https://calendar.google.com/calendar/render?action=TEMPLATE&text=URL_ENCODED_TITLE&dates=YYYYMMDDTHHmmssZ/YYYYMMDDTHHmmssZ&details=URL_ENCODED_DETAILS)". Calculate the correct start and end dates (in UTC) based on their request and current time. Ensure the link is prominent.
+- **Start Focus Action**: If the user wants to start a focus session NOW, include the exact string \`[ACTION:START_FOCUS]\` anywhere in your response.
 - **User-Friendly Responses**: Always respond helpfully, confirm actions, and suggest next steps. Liberally use emojis and rich markdown formatting (like bold text, italics, blockquotes, and lists) to make the conversation visually engaging and structured.
 
 Advanced Guidelines:
@@ -131,7 +132,7 @@ ${currentTasks
     });
 
     // Ensure history strictly follows user/model alternation for Gemini
-    const sanitizedHistory: any[] = [];
+    const sanitizedHistory: { role: string; parts: { text: string }[] }[] = [];
     let lastRole = null;
     
     for (const msg of history || []) {

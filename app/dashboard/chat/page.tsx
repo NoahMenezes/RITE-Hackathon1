@@ -655,65 +655,7 @@ export default function ChatPage() {
     const duration = parseDuration(userText) || 25;
 
     try {
-      if (intent === "focus") {
-        if (!user) {
-          toast.error("User not authenticated");
-          return;
-        }
-        if (duration > 60) {
-          setPendingPomodoro({ title: userText, duration });
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: (Date.now() + 1).toString(),
-              role: "bot",
-              text: `⏰ **Long Task Detected!**\n\nThis task is ${duration} minutes long (over 1 hour). Would you like to use the Pomodoro technique (25-minute focused sessions) or schedule the full time?\n\nReply "yes" for Pomodoro or "no" for full duration.`,
-            },
-          ]);
-          setIsTyping(false);
-          return;
-        }
 
-        const result = await autoScheduleTask(
-          user.id.toString(),
-          userText,
-          duration,
-        );
-        if (!result.success) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: (Date.now() + 1).toString(),
-              role: "bot",
-              text: `❌ **Focus Mode Failed!**\n\nI couldn't schedule this focus session: ${result.error || "Unknown error"}. Please try again later.`,
-            },
-          ]);
-          setIsTyping(false);
-          toast.error("Failed to start focus mode!");
-          return;
-        }
-        const focusMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "bot",
-          text: `🚀 **Focus Mode Initiated!**\n\nI've scheduled a ${duration}-minute focus session for "${userText}" and transitioning you to the deep focus environment now...`,
-        };
-        setMessages((prev) => [...prev, focusMsg]);
-
-        // Save focus message to database
-        if (user) {
-          saveChatMessage(user.id.toString(), focusMsg.text, "bot");
-        }
-        setIsTyping(false);
-        toast.loading("Initiating Focus Sequence...", { duration: 1500 });
-        setTimeout(
-          () =>
-            router.push(
-              `/dashboard/focus?taskId=${result.id}&title=${encodeURIComponent(userText)}`,
-            ),
-          1500,
-        );
-        return;
-      }
 
       if (intent === "scheduled") {
         if (!user) {
@@ -819,6 +761,12 @@ export default function ChatPage() {
         data.text ||
         (data.error ? `Error: ${data.error}` : "I'm having trouble connecting to my brain right now...");
 
+      let shouldStartFocus = false;
+      if (botText.includes("[ACTION:START_FOCUS]")) {
+        shouldStartFocus = true;
+        botText = botText.replace("[ACTION:START_FOCUS]", "").trim();
+      }
+
       // Check for exhaustion and add suggestion for non-unknown intents
       if (detectExhaustion(userText)) {
         botText +=
@@ -837,6 +785,10 @@ export default function ChatPage() {
       // Save bot message to database
       if (user) {
         saveChatMessage(user.id.toString(), botMessage.text, "bot");
+      }
+
+      if (shouldStartFocus) {
+        router.push("/dashboard/focus");
       }
     } catch (error) {
       console.error("Chat Error:", error);

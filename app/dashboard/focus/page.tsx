@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, Suspense } from "react";
+import React, { useState, useEffect, useCallback, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Play, Pause, Square, CheckCircle } from "lucide-react";
+import { Play, Pause, Square, CheckCircle, Volume2, VolumeX } from "lucide-react";
 import { updateTaskStatus } from "../../actions/tasks";
 import ShineBorder from "../../components/ShineBorder";
 import { toast } from "sonner";
@@ -18,10 +18,15 @@ function FocusModePage() {
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const handleComplete = useCallback(async () => {
     setIsActive(false);
     setIsCompleted(true);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
 
     if (taskId) {
       await updateTaskStatus(taskId, "completed");
@@ -50,12 +55,31 @@ function FocusModePage() {
   }, [isActive, timeLeft, handleComplete]);
 
   const toggleTimer = () => {
+    if (!isActive) {
+      if (audioRef.current) {
+        audioRef.current.play().catch(e => console.log("Audio play failed:", e));
+      }
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    }
     setIsActive(!isActive);
   };
 
   const stopTimer = () => {
     setIsActive(false);
     setTimeLeft(25 * 60);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (audioRef.current) {
+      audioRef.current.muted = !isMuted;
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -68,6 +92,12 @@ function FocusModePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-transparent text-white mt-10">
+      <audio
+        ref={audioRef}
+        src="https://coderadio-admin-v2.freecodecamp.org/listen/coderadio/radio.mp3"
+        loop
+        preload="none"
+      />
       <ShineBorder
         borderRadius={0}
         borderWidth={2}
@@ -79,7 +109,18 @@ function FocusModePage() {
         duration={10}
         className="w-full max-w-2xl !bg-zinc-950/90 !backdrop-blur-3xl !border-zinc-900 shadow-2xl p-0"
       >
-        <div className="p-12 md:p-24 flex flex-col items-center justify-center space-y-16">
+        <div className="p-12 md:p-24 flex flex-col items-center justify-center space-y-16 relative">
+          {/* Audio Toggle */}
+          <div className="absolute top-8 right-8 md:top-12 md:right-12">
+            <button
+              onClick={toggleMute}
+              className="p-3 bg-zinc-900 rounded-full text-zinc-400 hover:text-white transition-colors"
+              title={isMuted ? "Unmute Lofi" : "Mute Lofi"}
+            >
+              {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+            </button>
+          </div>
+
           {/* Header */}
           <div className="text-center space-y-4">
             <h2 className="text-sm font-black tracking-[0.3em] uppercase text-zinc-500">
