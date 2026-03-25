@@ -655,120 +655,6 @@ export default function ChatPage() {
     const duration = parseDuration(userText) || 25;
 
     try {
-      if (intent === "email") {
-        const match = userText
-          .replace(/i?email /i, "")
-          .trim()
-          .match(/^([^\s]+)(?:\s+(.*))?$/);
-        const emailAddress = match ? match[1] : "";
-        const enquiry = match && match[2] ? match[2].trim() : "";
-
-        if (!emailAddress || !emailAddress.includes("@")) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: (Date.now() + 1).toString(),
-              role: "bot",
-              text: `📧 **Who would you like to email?**\n\nPlease provide a valid email address. For example: *"Email john@example.com about the project meeting"*`,
-            },
-          ]);
-          setIsTyping(false);
-          return;
-        }
-
-        if (!enquiry) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: (Date.now() + 1).toString(),
-              role: "bot",
-              text: `📧 **What would you like to say?**\n\nPlease provide the content for your email to **${emailAddress}**. For example: *"Email ${emailAddress} Let's review the code tomorrow"*`,
-            },
-          ]);
-          setIsTyping(false);
-          return;
-        }
-
-        const messageText = `Hi, ${enquiry}`;
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "bot",
-            text: `📧 **Email Automation Initiated!**\n\nOpening Gmail to compose your email to **${emailAddress}**...`,
-          },
-        ]);
-
-        try {
-          await fetch("/api/email", {
-            method: "POST",
-            body: JSON.stringify({ email: emailAddress, message: messageText }),
-          });
-        } catch (_) {}
-
-        setIsTyping(false);
-        return;
-      }
-
-      if (intent === "whatsapp") {
-        const match = userText
-          .replace(/i?message on whatsapp to /i, "")
-          .replace(/i?message on whatsapp /i, "")
-          .replace(/i?message on /i, "")
-          .trim()
-          .match(/^([\d\s\+\-\(\)]+)(.*)$/);
-        const number = match ? match[1].trim() : "";
-        const enquiry = match && match[2] ? match[2].trim() : "";
-
-        if (!number || number.length < 5) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: (Date.now() + 1).toString(),
-              role: "bot",
-              text: `📱 **Who would you like to message?**\n\nPlease provide a valid phone number. For example: *"Message on WhatsApp +1234567890 Hello there!"*`,
-            },
-          ]);
-          setIsTyping(false);
-          return;
-        }
-
-        if (!enquiry) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: (Date.now() + 1).toString(),
-              role: "bot",
-              text: `📱 **What would you like to say?**\n\nPlease provide the message content you want to send to **${number}**. For example: *"Message on WhatsApp ${number} Let's catch up later!"*`,
-            },
-          ]);
-          setIsTyping(false);
-          return;
-        }
-
-        const messageText = `Hi, ${enquiry}`;
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "bot",
-            text: `📱 **WhatsApp Automation Initiated!**\n\nOpening WhatsApp to send your message to **${number}**...`,
-          },
-        ]);
-
-        try {
-          await fetch("/api/whatsapp", {
-            method: "POST",
-            body: JSON.stringify({ number, message: messageText }),
-          });
-        } catch (_) {}
-
-        setIsTyping(false);
-        return;
-      }
-
       if (intent === "focus") {
         if (!user) {
           toast.error("User not authenticated");
@@ -1089,9 +975,9 @@ export default function ChatPage() {
       )}
 
       {/* Full-viewport wrapper with background */}
-      <div className="chat-root relative w-full h-[calc(100vh-4rem)] flex overflow-hidden bg-black">
+      <div className="chat-root relative w-full h-[calc(100vh-4rem)] flex overflow-hidden bg-background">
         {/* Chat History Sidebar */}
-        <div className="w-64 bg-[#1f1f1f] border-r border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
+        <div className="w-64 bg-transparent border-r border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
           <div className="p-4">
             <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-4 mb-4">
               Chat History
@@ -1210,7 +1096,7 @@ export default function ChatPage() {
         </div>
 
         {/* ── Input Area ── */}
-        <div className="fixed bottom-0 left-64 right-80 z-10 px-4 py-4 bg-[#212121] border-t border-[#424242]">
+        <div className="fixed bottom-0 left-64 right-80 z-10 px-4 py-4 bg-background border-t border-[#424242]">
           <div className="relative flex items-center gap-3 bg-[#2f2f2f] border border-[#424242] rounded-3xl px-4 py-3 shadow-sm focus-within:bg-[#383838]">
             <input
               type="text"
@@ -1286,7 +1172,7 @@ export default function ChatPage() {
 
         {/* Calendar Sidebar */}
         {showCalendar && (
-          <div className="w-80 bg-[#2f2f2f] border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
+          <div className="w-80 bg-transparent border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
             <div className="p-4">
               <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8 mb-4">
                 Calendar
@@ -1341,7 +1227,7 @@ export default function ChatPage() {
 
         {/* Daily Plan Sidebar */}
         {!showCalendar && (
-          <div className="w-80 bg-[#2f2f2f] border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
+          <div className="w-80 bg-transparent border-l border-[#424242] flex flex-col overflow-y-auto scrollbar-custom">
             <div className="p-4">
               <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-8 mb-4">
                 Daily Plan
