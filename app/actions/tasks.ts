@@ -341,6 +341,13 @@ export async function saveChatMessage(
       sql: "INSERT INTO chat_history (user_id, message, role) VALUES (?, ?, ?)",
       args: [parseInt(userId), message, role],
     });
+
+    // Keep only the latest 50 messages
+    await db.execute({
+      sql: "DELETE FROM chat_history WHERE id NOT IN (SELECT id FROM chat_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 50) AND user_id = ?",
+      args: [parseInt(userId), parseInt(userId)],
+    });
+
     return { success: true };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
@@ -371,6 +378,21 @@ export async function getChatHistory(userId: string, limit: number = 20) {
     return { success: false, error: message, messages: [] };
   }
 }
+
+export async function clearChatHistory(userId: string) {
+  try {
+    await db.execute({
+      sql: "DELETE FROM chat_history WHERE user_id = ?",
+      args: [parseInt(userId)],
+    });
+    return { success: true };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Failed to clear chat history:", error);
+    return { success: false, error: message };
+  }
+}
+
 
 // Task Templates
 export async function createTaskTemplate(

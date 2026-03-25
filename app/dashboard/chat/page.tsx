@@ -22,6 +22,7 @@ import {
   getScheduledTasks,
   saveChatMessage,
   getChatHistory,
+  clearChatHistory,
   deleteTask,
   getTasksByDate,
   createTaskTemplate,
@@ -336,6 +337,27 @@ export default function ChatPage() {
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Data exported successfully");
+  };
+
+  
+  const handleClearHistory = async () => {
+    if (!user) return;
+    if (!confirm("Are you sure you want to clear your chat history?")) return;
+    
+    const result = await clearChatHistory(user.id.toString());
+    if (result.success) {
+      setChatHistory([]);
+      setMessages([
+        {
+          id: Date.now().toString(),
+          role: "bot",
+          text: "Hi there! I'm FocusFlow. What would you like to get done today? (Try asking me to summarize something, schedule a study session, or remind you to make a call!)\n\n**New Features:** Create templates, track habits, set recurring tasks, prioritize your work, search history, export data, and undo actions.",
+        },
+      ]);
+      toast.success("Chat history cleared");
+    } else {
+      toast.error("Failed to clear chat history");
+    }
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -994,9 +1016,18 @@ export default function ChatPage() {
         {/* Chat History Sidebar */}
         <div className="w-64 shrink-0 bg-transparent border-r border-[#424242] flex flex-col overflow-y-auto scrollbar-custom hidden md:flex">
           <div className="p-4">
-            <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-4 mb-4">
-              Chat History
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-black text-white border-l-8 border-blue-600 pl-4">
+                Chat History
+              </h2>
+              <button
+                onClick={handleClearHistory}
+                className="text-red-400 hover:text-red-300 p-1"
+                title="Clear History"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
             <div className="mb-4">
               <input
                 type="text"
