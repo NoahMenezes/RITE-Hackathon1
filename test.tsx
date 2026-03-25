@@ -1,1 +1,0 @@
-import ReactMarkdown from "react-markdown"; import remarkGfm from "remark-gfm"; import { renderToString } from "react-dom/server"; console.log(renderToString(<ReactMarkdown remarkPlugins={[remarkGfm]}>{`> "[Send Email](<mailto:test@example.com?subject=hello world>)"`}</ReactMarkdown>));
