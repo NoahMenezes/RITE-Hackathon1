@@ -13,7 +13,7 @@ import {
   Trash2,
   Calendar,
   Download,
-  RotateCcw,
+  RotateCcw, Mic, MicOff, Download as DownloadIcon,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -220,6 +220,7 @@ export default function ChatPage() {
     },
   ]);
   const [inputValue, setInputValue] = useState("");
+  const [isListening, setIsListening] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [quickTaskBuffer, setQuickTaskBuffer] = useState<string[]>([]);
   const [currentTasks, setCurrentTasks] = useState<Task[]>([]);
@@ -238,6 +239,45 @@ export default function ChatPage() {
   const [actionHistory, setActionHistory] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  
+  const toggleListening = () => {
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) {
+      toast.error("Speech recognition is not supported in this browser.");
+      return;
+    }
+    const recognition = new SpeechRec();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onstart = () => {
+      setIsListening(true);
+      toast.info("Listening...");
+    };
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInputValue((prev) => {
+        const text = prev ? prev + " " + transcript : transcript;
+        setTimeout(() => {
+          const btn = document.getElementById("send-button");
+          if (btn && !btn.hasAttribute("disabled")) btn.click();
+        }, 100);
+        return text;
+      });
+    };
+    recognition.onerror = (e: any) => {
+      console.error(e);
+      setIsListening(false);
+    };
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+    recognition.start();
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -265,6 +305,18 @@ export default function ChatPage() {
       "Undo functionality is basic - last action reversed conceptually",
     );
     setActionHistory((prev) => prev.slice(0, -1));
+  };
+
+  
+  const handleDownloadNote = (text: string) => {
+    const blob = new Blob([text], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'FocusFlow_Summary.md';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Note downloaded!");
   };
 
   const handleExport = () => {
@@ -1002,13 +1054,23 @@ export default function ChatPage() {
                     </div>
 
                     {msg.role === "bot" && (
-                      <button
-                        onClick={() => copyToClipboard(msg.text)}
-                        className="absolute -bottom-8 left-0 p-1.5 opacity-0 group-hover:opacity-100 transition-all text-[#ececec] hover:text-white"
-                        title="Copy to clipboard"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </button>
+                      <div className="absolute -bottom-8 left-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                        <button
+                          onClick={() => copyToClipboard(msg.text)}
+                          className="p-1.5 text-[#ececec] hover:text-white"
+                          title="Copy to clipboard"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDownloadNote(msg.text)}
+                          className="flex items-center gap-1 p-1.5 text-xs text-[#ececec] hover:text-white rounded hover:bg-white/10"
+                          title="Download Note (.md)"
+                        >
+                          <DownloadIcon className="w-3.5 h-3.5" />
+                          Download Note
+                        </button>
+                      </div>
                     )}
                   </div>
                 </motion.div>
@@ -1083,6 +1145,14 @@ export default function ChatPage() {
               <RotateCcw className="w-4 h-4" />
             </motion.button>
             <motion.button
+              onClick={toggleListening}
+              whileTap={{ scale: 0.95 }}
+              className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 shrink-0 mr-2 ${isListening ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : "bg-[#424242] hover:bg-[#565656] text-[#9b9b9b] hover:text-white"}`}
+              title="Voice Input"
+            >
+              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </motion.button>
+            <motion.button
               onClick={handleFileButtonClick}
               whileTap={{ scale: 0.95 }}
               className="flex items-center justify-center w-8 h-8 rounded-full bg-[#424242] hover:bg-[#565656] text-[#9b9b9b] hover:text-white transition-all duration-200 shrink-0 mr-2"
@@ -1091,7 +1161,7 @@ export default function ChatPage() {
               <Paperclip className="w-4 h-4" />
             </motion.button>
             <motion.button
-              onClick={handleSend}
+              id="send-button" onClick={handleSend}
               disabled={(!inputValue.trim() && !fileContent.trim()) || isTyping}
               whileTap={{ scale: 0.95 }}
               className={cn(

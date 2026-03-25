@@ -35,14 +35,3 @@ This document outlines the high-impact features to add and the critical bugs to 
 1. In `/app/api/chat/route.ts`, before sending the message to Gemini, use a regex to detect if the user sent a URL.
 2. If yes, run a quick `fetch(url)`, strip HTML tags using a basic regex or library like `cheerio`.
 3. Append the scraped text to the user's prompt: `"Summarize this content: " + scrapedText`.
-
----
-
-## 🛠️ Critical Architecture Fixes (The "Gotchas")
-
-### 3. Quick Task Burst Grouping (UI Illusion)
-**The Problem:** You promised grouping small tasks into a "15-min burst", but they currently just show up as individual tasks.
-**The Fix:**
-1. On the frontend Dashboard where you list tasks, filter out all tasks where `type === 'quick'`.
-2. Map over them and render them inside a single cohesive UI card titled "⚡ 15-Minute Quick Task Burst".
-3. Add a single "Start Burst" button that just opens a 15-minute timer modal displaying those specific tasks.
