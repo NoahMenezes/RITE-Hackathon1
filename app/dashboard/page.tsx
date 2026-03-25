@@ -411,7 +411,7 @@ export default function DashboardPage() {
                 />
                 <AnalyticsCard
                   title="Total Time"
-                  value={`${Math.round(analytics.totalTime / 60)}h`}
+                  value={analytics.totalTime >= 60 ? `${Math.floor(analytics.totalTime / 60)}h${analytics.totalTime % 60 > 0 ? ` ${analytics.totalTime % 60}m` : ''}` : `${analytics.totalTime}m`}
                   icon={Clock}
                 />
                 <AnalyticsCard
