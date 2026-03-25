@@ -114,10 +114,15 @@ function FocusModePage() {
           <div className="absolute top-8 right-8 md:top-12 md:right-12">
             <button
               onClick={toggleMute}
-              className="p-3 bg-zinc-900 rounded-full text-zinc-400 hover:text-white transition-colors"
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all border ${
+                isMuted
+                  ? "bg-zinc-900 text-zinc-500 border-zinc-800 hover:text-zinc-300"
+                  : "bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20"
+              }`}
               title={isMuted ? "Unmute Lofi" : "Mute Lofi"}
             >
-              {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              <span>Lofi Radio</span>
             </button>
           </div>
 

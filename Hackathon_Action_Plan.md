@@ -14,13 +14,6 @@ This document outlines the high-impact features to add and the critical bugs to 
 3. On click, start listening, transcribe the audio, and auto-fill the input box.
 4. Auto-submit the form when the user stops speaking.
 
-### 2. Lofi / Focus Audio Autoplay 🎵
-**Why:** A real focus mode needs an environment.
-**How to Implement:**
-1. In `/app/dashboard/focus/page.tsx`, add an `<audio>` tag or an embedded invisible YouTube iframe playing a Lofi stream.
-2. When the user clicks "Start Timer", trigger the `.play()` method on the audio element.
-3. Add a simple volume/mute toggle in the UI.
-
 ### 3. Downloadable Notes (.txt/.md export) 📄
 **Why:** If the bot summarizes a long text, the user should be able to keep it.
 **How to Implement:**
@@ -46,13 +39,6 @@ This document outlines the high-impact features to add and the critical bugs to 
 ---
 
 ## 🛠️ Critical Architecture Fixes (The "Gotchas")
-
-### 2. Implement "Start from Chat" Auto-Redirect
-**The Problem:** The bot says "I'm starting your focus session" but the UI doesn't actually change.
-**The Fix:**
-1. Instruct Gemini in the system prompt: *"If the user wants to start a focus session NOW, include the exact string `[ACTION:START_FOCUS]` in your response."*
-2. In your frontend chat component, check if the response contains `[ACTION:START_FOCUS]`.
-3. If it does, use Next.js `useRouter().push('/dashboard/focus')` to forcefully redirect the user to the timer screen, and strip the `[ACTION...]` tag from the displayed text. Otherwise create a focus session frontend. 
 
 ### 3. Quick Task Burst Grouping (UI Illusion)
 **The Problem:** You promised grouping small tasks into a "15-min burst", but they currently just show up as individual tasks.
