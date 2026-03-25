@@ -129,14 +129,15 @@ export async function POST(req: Request) {
     }
 
     // Build enhanced context for the LLM
-    let enhancedPrompt = systemPrompt;
+    const now = new Date();
+    let enhancedPrompt = systemPrompt + `\n\nIMPORTANT: The current date and time is exactly ${now.toString()} (Local time) / ${now.toISOString()} (UTC). Base all relative time calculations (like "tomorrow", "next week", "in 2 hours") on this current time, NOT your training data cutoff.`;
 
     if (userContext) {
       enhancedPrompt += `\n\nUSER CONTEXT:
 - User ID: ${userContext.id}
 - Name: ${userContext.name || "Unknown"}
 - Email: ${userContext.email}
-- Current Time: ${new Date().toISOString()}`;
+- Current Time: ${now.toISOString()}`;
     }
 
     if (currentTasks && currentTasks.length > 0) {
