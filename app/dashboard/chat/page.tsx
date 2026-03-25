@@ -921,7 +921,18 @@ export default function ChatPage() {
       // Load current tasks
       getScheduledTasks(user.id.toString()).then((res) => {
         if (res.success && res.tasks) {
-          setCurrentTasks(res.tasks);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          
+          const todaysTasksList = res.tasks.filter((task: Task) => {
+            const dateStr = task.scheduled_for || task.created_at;
+            if (!dateStr) return false;
+            const taskDate = new Date(dateStr);
+            return taskDate >= today && taskDate < tomorrow;
+          });
+          setCurrentTasks(todaysTasksList);
         }
       });
 

@@ -70,7 +70,7 @@ export async function getTasks(userId: string) {
 export async function getScheduledTasks(userId: string) {
   try {
     const result = await db.execute({
-      sql: "SELECT * FROM tasks WHERE user_id = ? AND type = 'scheduled' ORDER BY scheduled_for ASC",
+      sql: "SELECT * FROM tasks WHERE user_id = ? ORDER BY scheduled_for ASC",
       args: [parseInt(userId)],
     });
     return { success: true, tasks: JSON.parse(JSON.stringify(result.rows)) };

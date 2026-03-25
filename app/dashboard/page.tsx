@@ -110,7 +110,20 @@ export default function DashboardPage() {
     if (user) {
       // Load scheduled tasks for timeline
       getScheduledTasks(user.id.toString()).then((res) => {
-        if (res.success && res.tasks) setTasks(res.tasks as unknown as Task[]);
+        if (res.success && res.tasks) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          
+          const todaysTasksList = (res.tasks as unknown as Task[]).filter((task) => {
+            const dateStr = task.scheduled_for || task.created_at;
+            if (!dateStr) return false;
+            const taskDate = new Date(dateStr);
+            return taskDate >= today && taskDate < tomorrow;
+          });
+          setTasks(todaysTasksList);
+        }
         setLoadingTasks(false);
       });
 
@@ -195,8 +208,20 @@ export default function DashboardPage() {
         toast.success("Demo data loaded! Check out your new schedule.");
         // Refresh tasks
         const scheduledRes = await getScheduledTasks(user.id.toString());
-        if (scheduledRes.success && scheduledRes.tasks)
-          setTasks(scheduledRes.tasks);
+        if (scheduledRes.success && scheduledRes.tasks) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          
+          const todaysTasksList = (scheduledRes.tasks as unknown as Task[]).filter((task) => {
+            const dateStr = task.scheduled_for || task.created_at;
+            if (!dateStr) return false;
+            const taskDate = new Date(dateStr);
+            return taskDate >= today && taskDate < tomorrow;
+          });
+          setTasks(todaysTasksList);
+        }
 
         const allRes = await getTasks(user.id.toString());
         if (allRes.success && allRes.tasks) setAllTasks(allRes.tasks as Task[]);
@@ -254,8 +279,20 @@ export default function DashboardPage() {
     if (result.success) {
       // Refresh tasks
       const scheduledRes = await getScheduledTasks(user.id.toString());
-      if (scheduledRes.success && scheduledRes.tasks)
-        setTasks(scheduledRes.tasks);
+      if (scheduledRes.success && scheduledRes.tasks) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const todaysTasksList = (scheduledRes.tasks as unknown as Task[]).filter((task) => {
+          const dateStr = task.scheduled_for || task.created_at;
+          if (!dateStr) return false;
+          const taskDate = new Date(dateStr);
+          return taskDate >= today && taskDate < tomorrow;
+        });
+        setTasks(todaysTasksList);
+      }
 
       const allRes = await getTasks(user.id.toString());
       if (allRes.success && allRes.tasks) setAllTasks(allRes.tasks as Task[]);
@@ -299,8 +336,9 @@ export default function DashboardPage() {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const todaysTasks = allTasks.filter((task) => {
-      if (!task.created_at) return false;
-      const taskDate = new Date(task.created_at);
+      const dateStr = task.scheduled_for || task.created_at;
+      if (!dateStr) return false;
+      const taskDate = new Date(dateStr);
       return taskDate >= today && taskDate < tomorrow;
     });
 
